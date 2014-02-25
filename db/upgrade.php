@@ -16,34 +16,34 @@ function xmldb_local_inscricoes_upgrade($oldversion) {
         // ---------------------------------------------------------------------------
         $table = new xmldb_table('inscricoes_config_reports');
 
-        $field = new xmldb_field('minoptionalcourses', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, null);
+        $field = new xmldb_field('minoptionalcourses', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, '0');
         $dbman->change_field_precision($table, $field);
 
-        $field = new xmldb_field('maxoptionalcourses', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, null);
+        $field = new xmldb_field('maxoptionalcourses', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, '0');
         $dbman->change_field_precision($table, $field);
 
         // ---------------------------------------------------------------------------
         $table = new xmldb_table('inscricoes_courses');
 
-        $field = new xmldb_field('inscribestartdate', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'workload');
+        $field = new xmldb_field('inscribestartdate', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'workload');
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
 
-        $field = new xmldb_field('inscribeenddate', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'inscribestartdate');
+        $field = new xmldb_field('inscribeenddate', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'inscribestartdate');
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
 
-        $field = new xmldb_field('coursedependencyid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'inscribeenddate');
+        $field = new xmldb_field('coursedependencyid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'inscribeenddate');
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
 
-        $field = new xmldb_field('type', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, null);
+        $field = new xmldb_field('type', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0');
         $dbman->change_field_precision($table, $field);
 
-        $field = new xmldb_field('workload', XMLDB_TYPE_INTEGER, '5', null, XMLDB_NOTNULL, null, null);
+        $field = new xmldb_field('workload', XMLDB_TYPE_INTEGER, '5', null, XMLDB_NOTNULL, null, '0');
         $dbman->change_field_precision($table, $field);
 
         // Savepoint reached.
