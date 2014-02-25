@@ -31,6 +31,11 @@ $string['dependency'] = 'Pré-requisito';
 $string['inscribeperiodo'] = 'Périodo de inscrições';
 $string['configurations'] = 'Configurações';
 
+$string['errors'] = 'Há valores inválidos para os campos indicados abaixo';
+$string['invalid_workload'] = 'Carga horária deve estar no intervalo [0..360]';
+$string['dependecy_not_opt_dem'] = 'Pré-requisito deve ser um módulo obrigatório ou optativo';
+$string['end_before_start'] = 'Data de final de inscrições é anterior à de início';
+
 $string['config_courses'] = 'Configuração dos módulos';
 $string['studentrole'] = 'Papel de estudantes: ';
 $string['minoptionalcourses'] = 'Número mínimo de módulos optativos: ';

@@ -81,14 +81,24 @@ if (optional_param('savechanges', false, PARAM_BOOL) && confirm_sesskey()) {
     $endyears = optional_param_array('endyears', array(), PARAM_INT);
 
     $courseids = array();
+    $errors = array();
     foreach($courses as $c) {
         if(isset($types[$c->courseid])) {
             $rec = new stdclass();
             $rec->type = $types[$c->courseid];
             $rec->workload = $workloads[$c->courseid];
+            if($rec->workload < 0 || $rec->workload > 360) {
+                $errors[$c->fullname][] = get_string('invalid_workload', 'local_inscricoes');
+            }
             $rec->coursedependencyid = $dependencies[$c->courseid];
+            if($dependencies[$c->courseid] > 0 && !in_array($types[$dependencies[$c->courseid]], array(1,2))) {
+                $errors[$c->fullname][] = get_string('dependecy_not_opt_dem', 'local_inscricoes');
+            }
             $rec->inscribestartdate = make_timestamp($startyears[$c->courseid], $startmonths[$c->courseid], $startdays[$c->courseid]);
             $rec->inscribeenddate = make_timestamp($endyears[$c->courseid], $endmonths[$c->courseid], $enddays[$c->courseid]);
+            if($rec->inscribeenddate < $rec->inscribestartdate) {
+                $errors[$c->fullname][] = get_string('end_before_start', 'local_inscricoes');
+            }
             $rec->timemodified = time();
             if(empty($c->icid)) {
                 $rec->contextid = $contextid;
@@ -100,6 +110,9 @@ if (optional_param('savechanges', false, PARAM_BOOL) && confirm_sesskey()) {
             }
             $courseids[] = $c->courseid;
         }
+    }
+    if(!empty($errors)) {
+        $SESSION->errors = $errors;
     }
 
     if(empty($courseids)) {
@@ -131,6 +144,26 @@ if (optional_param('savechanges', false, PARAM_BOOL) && confirm_sesskey()) {
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('inscricoes:config', 'local_inscricoes') . ': ' . $category->name);
+echo html_writer::start_tag('DIV', array('class'=>'local_inscricoes'));
+
+if(isset($SESSION->errors)) {
+    $errors = $SESSION->errors;
+    unset($SESSION->errors);
+
+    echo $OUTPUT->box_start('generalbox boxaligncenter boxwidthwide msg_error');
+    echo $OUTPUT->heading(get_string('errors', 'local_inscricoes'));
+    echo html_writer::start_tag('UL');
+    foreach($errors AS $fullname=>$errs) {
+        echo html_writer::tag('LI', $fullname);
+        echo html_writer::start_tag('UL');
+        foreach($errs AS $err) {
+            echo html_writer::tag('LI', $err);
+        }
+        echo html_writer::end_tag('UL');
+    }
+    echo html_writer::end_tag('UL');
+    echo $OUTPUT->box_end();
+}
 
 echo html_writer::start_tag('form', array('action'=>$baseurl->out_omit_querystring(), 'method'=>'post'));
 echo html_writer::start_tag('div');
@@ -214,4 +247,5 @@ echo html_writer::end_tag('div');
 echo html_writer::end_tag('div');
 echo html_writer::end_tag('form');
 
+echo html_writer::end_tag('DIV');
 echo $OUTPUT->footer();
