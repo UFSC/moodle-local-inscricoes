@@ -65,16 +65,30 @@ if(empty($configs)) {
 }
 
 $courses = local_inscricoes_get_courses($contextid, false);
+
 /// Process any form submission.
 if (optional_param('savechanges', false, PARAM_BOOL) && confirm_sesskey()) {
     $types = optional_param_array('type', array(), PARAM_INT);
     $workloads = optional_param_array('workload', array(), PARAM_INT);
+    $dependencies = optional_param_array('dependencies', array(), PARAM_INT);
+
+    $startdays = optional_param_array('startdays', array(), PARAM_INT);
+    $startmonths = optional_param_array('startmonths', array(), PARAM_INT);
+    $startyears = optional_param_array('startyears', array(), PARAM_INT);
+
+    $enddays = optional_param_array('enddays', array(), PARAM_INT);
+    $endmonths = optional_param_array('endmonths', array(), PARAM_INT);
+    $endyears = optional_param_array('endyears', array(), PARAM_INT);
+
     $courseids = array();
     foreach($courses as $c) {
         if(isset($types[$c->courseid])) {
             $rec = new stdclass();
             $rec->type = $types[$c->courseid];
             $rec->workload = $workloads[$c->courseid];
+            $rec->coursedependencyid = $dependencies[$c->courseid];
+            $rec->inscribestartdate = make_timestamp($startyears[$c->courseid], $startmonths[$c->courseid], $startdays[$c->courseid]);
+            $rec->inscribeenddate = make_timestamp($endyears[$c->courseid], $endmonths[$c->courseid], $enddays[$c->courseid]);
             $rec->timemodified = time();
             if(empty($c->icid)) {
                 $rec->contextid = $contextid;
@@ -101,6 +115,7 @@ if (optional_param('savechanges', false, PARAM_BOOL) && confirm_sesskey()) {
     $config->maxoptionalcourses = optional_param('maxoptionalcourses', -1, PARAM_INT);
     $config->optionalatonetime = optional_param('optionalatonetime', 0, PARAM_INT);
     $config->studentroleid = optional_param('studentroleid', -1, PARAM_INT);
+
     if($config->minoptionalcourses >= 0) {
         $config->timemodified = time();
         if(isset($config->id)) {
@@ -129,20 +144,43 @@ $type_options = array(0=>get_string('not_classified', 'local_inscricoes'),
 
 $data = array();
 foreach($courses as $c) {
-    $line = array();
+    $tab = new html_table();
+    $tab->data = array();
+
+    $tab->data[] = array(get_string('type', 'local_inscricoes'),
+                         html_writer::select($type_options, "type[$c->courseid]", $c->type, false));
+    $tab->data[] = array(get_string('workload', 'local_inscricoes'),
+                         html_writer::empty_tag('input', array('type'=>'text', 'name'=>"workload[$c->courseid]", 'value'=>$c->workload, 'size'=>5)));
+
+    $startdate = get_string('from') . ': '
+                 . html_writer::select_time('days', "startdays[$c->courseid]", $c->inscribestartdate)
+                 . html_writer::select_time('months', "startmonths[$c->courseid]", $c->inscribestartdate)
+                 . html_writer::select_time('years', "startyears[$c->courseid]", $c->inscribestartdate);
+    $enddate   = get_string('to') . ': '
+                 . html_writer::select_time('days', "enddays[$c->courseid]", $c->inscribeenddate)
+                 . html_writer::select_time('months', "endmonths[$c->courseid]", $c->inscribeenddate)
+                 . html_writer::select_time('years', "endyears[$c->courseid]", $c->inscribeenddate);
+    $tab->data[] = array(get_string('inscribeperiodo', 'local_inscricoes'),
+                   $startdate . '   ' . $enddate);
+
+    $course_options = array('0' => get_string('none'));
+    foreach($courses as $copt) {
+        if($copt->courseid != $c->courseid) {
+            $course_options[$copt->courseid] = $copt->fullname;
+        }
+    }
+
+    $tab->data[] = array(get_string('dependency', 'local_inscricoes'),
+                         html_writer::select($course_options, "dependencies[$c->courseid]", $c->coursedependencyid, false));
 
     $curl = new moodle_url('/course/view.php', array('id'=>$c->courseid));
-    $line[] = html_writer::link($curl, format_string($c->fullname), array('target'=>'_new'));
-    $line[] = html_writer::select($type_options, "type[$c->courseid]", $c->type, false);
-    $line[] = html_writer::empty_tag('input', array('type'=>'text', 'name'=>"workload[$c->courseid]", 'value'=>$c->workload, 'size'=>5));
-
-    $data[] = $line;
+    $data[] = array(html_writer::link($curl, format_string($c->fullname), array('target'=>'_new')),
+                    html_writer::table($tab));
 }
 $table = new html_table();
 $table->head  = array(get_string('coursename', 'local_inscricoes'),
-                      get_string('type', 'local_inscricoes'),
-                      get_string('workload', 'local_inscricoes'));
-$table->colclasses = array('leftalign', 'centeralign', 'rightalign');
+                      get_string('configurations', 'local_inscricoes'));
+$table->colclasses = array('leftalign', 'leftalign');
 $table->id = 'inscricoes';
 $table->attributes['class'] = 'admintable generaltable';
 $table->data = $data;
@@ -156,12 +194,12 @@ for($i=0; $i <= count($courses); $i++) {
 echo html_writer::start_tag('div');
 echo html_writer::tag('B', get_string('minoptionalcourses', 'local_inscricoes'));
 echo html_writer::select($options_opt, "minoptionalcourses", $config->minoptionalcourses, false);
-echo html_writer::empty_tag('br');
 
+echo html_writer::empty_tag('br');
 echo html_writer::tag('B', get_string('maxoptionalcourses', 'local_inscricoes'));
 echo html_writer::select($options_opt, "maxoptionalcourses", $config->maxoptionalcourses, false);
-echo html_writer::empty_tag('br');
 
+echo html_writer::empty_tag('br');
 $yesnooptions = array('1'=>get_string('yes'), '0'=>get_string('no'));
 echo html_writer::tag('B', get_string('optionalatonetime', 'local_inscricoes'));
 echo html_writer::select($yesnooptions, "optionalatonetime", $config->optionalatonetime, false);

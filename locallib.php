@@ -60,7 +60,8 @@ function local_inscricoes_get_courses($contextid, $only_already_configured=true)
     unset($cats[0]);
     $str_cats = implode(',', $cats);
     $join = $only_already_configured ? 'JOIN' : 'LEFT JOIN';
-    $sql = "SELECT c.id as courseid, c.fullname, ic.type, IF(ISNULL(ic.workload), 0, ic.workload) AS workload, ic.id AS icid
+    $sql = "SELECT c.id as courseid, c.fullname, 
+                   ic.type, ic.workload, ic.inscribestartdate, ic.inscribeenddate, ic.id AS icid, ic.coursedependencyid
               FROM {course} c
               {$join} {inscricoes_courses} ic ON (ic.contextid = :contextid AND ic.courseid = c.id)
              WHERE c.category IN ({$str_cats})

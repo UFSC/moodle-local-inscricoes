@@ -27,12 +27,15 @@ $string['inscricoes:send_grades'] = 'Envia resultados';
 $string['coursename'] = 'Nome do módulo';
 $string['type'] = 'Tipo';
 $string['workload'] = 'Carga Horária (h)';
+$string['dependency'] = 'Pré-requisito';
+$string['inscribeperiodo'] = 'Périodo de inscrições';
+$string['configurations'] = 'Configurações';
 
 $string['config_courses'] = 'Configuração dos módulos';
 $string['studentrole'] = 'Papel de estudantes: ';
 $string['minoptionalcourses'] = 'Número mínimo de módulos optativos: ';
 $string['maxoptionalcourses'] = 'Número máximo de módulos optativos: ';
-$string['optionalatonetime'] = 'Selecionar módulos optativos conjuntamenta: ';
+$string['optionalatonetime'] = 'Selecionar módulos optativos em bloco: ';
 
 $string['mandatory'] = 'obrigatório';
 $string['optional'] = 'optativo';
