@@ -25,7 +25,7 @@ class local_inscricoes_renderer extends plugin_renderer_base {
 
         $this->categoryid = $context->instanceid;
         $this->contextid = $context->id;
-        $this->print_header($this->categoryid);
+        $this->print_header();
 
         print $this->heading(get_string('report_progress', 'local_inscricoes') .
                              $OUTPUT->help_icon('report_progress', 'local_inscricoes'));
@@ -87,7 +87,7 @@ class local_inscricoes_renderer extends plugin_renderer_base {
             $csvdata[] = "Aprovado";
             $csvexport->add_data($csvdata);
         } else {
-            $this->print_header($this->categoryid);
+            $this->print_header();
 
             print $this->heading(get_string('report_completion', 'local_inscricoes') .
                                  $OUTPUT->help_icon('report_progress', 'local_inscricoes'));
@@ -529,8 +529,6 @@ class local_inscricoes_renderer extends plugin_renderer_base {
 
     public function print_header() {
         global $OUTPUT, $PAGE;
-
-        navigation_node::override_active_url(new moodle_url('/course/category.php', array('id' => $this->categoryid)));
 
         echo $OUTPUT->header();
 

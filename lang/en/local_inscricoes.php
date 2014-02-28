@@ -28,11 +28,11 @@ $string['inscricoes:send_grades'] = 'Envia resultados';
 
 $string['report_completion'] = 'Relatório de acompanhamento de conclusão de curso';
 $string['report_progress'] = 'Relatório de acompanhamento do progresso em módulos';
-$string['report_progress_help'] = 'Este relatório reune dados dos estudantes sobre o andamento e sobre as notas
+$string['report_progress_help'] = 'Este relatório reúne dados dos estudantes sobre o andamento e sobre as notas
     de diversas atividades e módulos de um curso. Alterações de configuração devem ser
     feitas nos módulos correspondentes, conforme indicado abaixo:
     <UL>
-    <LI>Os cursos listados são aqueles registrados como obrigatórios ou optativos na configuração do "Relatório
+    <LI>Os módulos listados são aqueles registrados como obrigatórios ou optativos na configuração do "Relatório
         de Acompanhamento" da categoria</LI>
     <LI>As atividades listadas em cada módulo são aquelas registradas como condição para conclusão do módulo
         (ver item "Conclusão de curso" na caixa de "Administração" do módulo)</LI>
@@ -50,7 +50,7 @@ $string['report_progress_help'] = 'Este relatório reune dados dos estudantes so
 $string['coursename'] = 'Nome do módulo';
 $string['type'] = 'Tipo';
 $string['workload'] = 'Carga Horária (h)';
-$string['dependency'] = 'Pré-requisito';
+$string['dependency'] = 'Pré-requisito p/ inscrição';
 $string['inscribeperiodo'] = 'Périodo de inscrições';
 $string['configurations'] = 'Configurações';
 

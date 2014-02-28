@@ -242,14 +242,14 @@ function local_inscricoes_add_cohort($name, $idnumber, $contextid) {
     return $cohort;
 }
 
-function local_inscricoes_add_aditional_fields($configactivityid, $userid, $aditional_fields) {
+function local_inscricoes_add_aditional_fields($activityid, $userid, $aditional_fields) {
     global $DB;
 
-    $DB->delete_records('inscricoes_user_fields', array('configactivityid'=>$configactivityid, 'userid'=>$userid));
+    $DB->delete_records('inscricoes_user_fields', array('activityid'=>$activityid, 'userid'=>$userid));
     $fields = json_decode($aditional_fields, true);
     if(!empty($fields)) {
         $insc = new stdClass();
-        $insc->configactivityid = $configactivityid;
+        $insc->activityid = $activityid;
         $insc->userid = $userid;
         $insc->timemodified = time();
         foreach($fields AS $name=>$value) {
@@ -266,7 +266,7 @@ function local_inscricoes_get_aditional_fields($contextid, $userid) {
     $sql = "SELECT name, value
               FROM (SELECT name, value
                       FROM {inscricoes_user_fields} uf
-                      JOIN {inscricoes_activities} a ON (a.id = uf.configactivityid)
+                      JOIN {inscricoes_activities} a ON (a.id = uf.activityid)
                      WHERE a.contextid = :contextid
                        AND uf.userid = :userid
                     ORDER BY name, timemodified DESC) ad

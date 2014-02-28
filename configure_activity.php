@@ -6,7 +6,7 @@ require_once($CFG->dirroot.'/local/inscricoes/configure_activity_form.php');
 require_once($CFG->libdir.'/adminlib.php');
 
 $contextid = required_param('contextid', PARAM_INT);
-$configactivityid = optional_param('configactivityid', 0, PARAM_INT);
+$activityid = optional_param('activityid', 0, PARAM_INT);
 
 require_login();
 $context = context::instance_by_id($contextid, MUST_EXIST);
