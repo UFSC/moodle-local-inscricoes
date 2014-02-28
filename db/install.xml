@@ -4,11 +4,11 @@
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="inscricoes_config_activities" COMMENT="inscricoes_config_activities">
+    <TABLE NAME="inscricoes_activities" COMMENT="inscricoes_activities">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="activityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="externalactivityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="studentroleid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="createcohortbyedition" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="enable" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false"/>
@@ -19,13 +19,14 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="inscfg_ctx_ix" UNIQUE="false" FIELDS="contextid"/>
-        <INDEX NAME="inscfg_act_ix" UNIQUE="false" FIELDS="activityid"/>
+        <INDEX NAME="inscfg_act_ix" UNIQUE="false" FIELDS="externalactivityid"/>
         <INDEX NAME="inscfg_ena_ix" UNIQUE="false" FIELDS="enable"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="inscricoes_config_reports" COMMENT="inscricoes_config_reports">
+    <TABLE NAME="inscricoes_reports" COMMENT="inscricoes_reports">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="activityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="minoptionalcourses" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="maxoptionalcourses" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false"/>
@@ -42,7 +43,7 @@
     <TABLE NAME="inscricoes_courses" COMMENT="inscricoes_courses">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="reportid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="type" TYPE="int" LENGTH="2" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="workload" TYPE="int" LENGTH="5" NOTNULL="true" SEQUENCE="false"/>
@@ -55,14 +56,14 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="inscou_ctx_ix" UNIQUE="false" FIELDS="contextid"/>
+        <INDEX NAME="inscou_rep_ix" UNIQUE="false" FIELDS="reportid"/>
         <INDEX NAME="inscou_cou_ix" UNIQUE="false" FIELDS="courseid"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="inscricoes_user_fields" COMMENT="inscricoes_user_fields">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="configactivityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="activityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="name" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="value" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
@@ -72,7 +73,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="insuser_act_ix" UNIQUE="false" FIELDS="configactivityid"/>
+        <INDEX NAME="insuser_act_ix" UNIQUE="false" FIELDS="activityid"/>
         <INDEX NAME="insuser_use_ix" UNIQUE="false" FIELDS="userid"/>
       </INDEXES>
     </TABLE>

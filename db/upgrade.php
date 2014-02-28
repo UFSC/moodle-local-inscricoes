@@ -11,6 +11,7 @@ function xmldb_local_inscricoes_upgrade($oldversion) {
 
     $dbman = $DB->get_manager(); // Loads ddl manager and xmldb classes.
 
+/*
     if ($oldversion < 2014021004) {
 
         // ---------------------------------------------------------------------------
@@ -49,6 +50,6 @@ function xmldb_local_inscricoes_upgrade($oldversion) {
         // Savepoint reached.
         upgrade_plugin_savepoint(true, 2014021004, 'local', 'inscricoes');
     }
-
+*/
     return true;
 }

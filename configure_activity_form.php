@@ -3,7 +3,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/lib/formslib.php');
 
-class manage_form extends moodleform {
+class configure_activity_form extends moodleform {
 
     /**
      * Define the relationshipgroup edit form
@@ -12,7 +12,7 @@ class manage_form extends moodleform {
         global $CFG, $DB;
 
         $mform = $this->_form;
-        $registration = $this->_customdata['data'];
+        $activity = $this->_customdata['data'];
 
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
@@ -20,9 +20,9 @@ class manage_form extends moodleform {
         $mform->addElement('hidden', 'contextid');
         $mform->setType('contextid', PARAM_INT);
 
-        $mform->addElement('text', 'activityid', get_string('activityid', 'local_inscricoes'), 'maxlength="10" size="5"');
-        $mform->addRule('activityid', get_string('required'), 'required', null, 'client');
-        $mform->setType('activityid', PARAM_INT);
+        $mform->addElement('text', 'externalactivityid', get_string('externalactivityid', 'local_inscricoes'), 'maxlength="10" size="5"');
+        $mform->addRule('externalactivityid', get_string('required'), 'required', null, 'client');
+        $mform->setType('externalactivityid', PARAM_INT);
 
         $options_role = array();
         $gradebookroles = explode(',', $CFG->gradebookroles);
@@ -36,7 +36,7 @@ class manage_form extends moodleform {
 
         $this->add_action_buttons();
 
-        $this->set_data($registration);
+        $this->set_data($activity);
     }
 
     public function validation($data, $files) {
@@ -44,15 +44,15 @@ class manage_form extends moodleform {
 
         $errors = parent::validation($data, $files);
 
-        if(empty($data['activityid']) || $data['activityid'] < 0) {
-            $errors['activityid'] = get_string('activityid_invalid', 'local_inscricoes');
+        if(empty($data['externalactivityid']) || $data['externalactivityid'] < 0) {
+            $errors['externalactivityid'] = get_string('externalactivityid_invalid', 'local_inscricoes');
         } else {
             $sql = "SELECT id
-                      FROM {inscricoes_config_activities}
-                     WHERE activityid = :activityid
+                      FROM {inscricoes_activities}
+                     WHERE externalactivityid = :externalactivityid
                        AND contextid != :contextid";
-            if($DB->record_exists_sql($sql, array('activityid'=>$data['activityid'], 'contextid'=>$data['contextid']))) {
-                $errors['activityid'] = get_string('activityid_exists', 'local_inscricoes');
+            if($DB->record_exists_sql($sql, array('externalactivityid'=>$data['externalactivityid'], 'contextid'=>$data['contextid']))) {
+                $errors['externalactivityid'] = get_string('externalactivityid_exists', 'local_inscricoes');
             }
         }
 

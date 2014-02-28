@@ -9,7 +9,7 @@ class local_inscricoes_external extends external_api {
 
     public static function subscribe_user_parameters() {
         return new external_function_parameters (
-                    array('activityid' => new external_value(PARAM_INT, 'Activity Id that comes fom de Registration System'),
+                    array('activityid' => new external_value(PARAM_INT, 'Activity Id that comes fom de activity System'),
                           'idpessoa' => new external_value(PARAM_LONG, 'Id Pessoa do SCCP'),
                           'role' => new external_value(PARAM_TEXT, 'Subscription role'),
                           'edition' => new external_value(PARAM_TEXT, 'Activity ddição'),
@@ -27,15 +27,15 @@ class local_inscricoes_external extends external_api {
             return get_string('empty_role_edition', 'local_inscricoes');
         }
 
-        if(!$registration = $DB->get_record('inscricoes_config_activities', array('activityid'=>$activityid))) {
+        if(!$activity = $DB->get_record('inscricoes_activities', array('externalactivityid'=>$activityid))) {
             return get_string('activity_not_configured', 'local_inscricoes');
         }
-        if(!$registration->enable) {
+        if(!$activity->enable) {
             return get_string('activity_not_enable', 'local_inscricoes');
         }
 
         try {
-            $context = context::instance_by_id($registration->contextid);
+            $context = context::instance_by_id($activity->contextid);
         } catch (Exception $e) {
             return get_string('category_unknown', 'local_inscricoes');
         }
@@ -51,11 +51,11 @@ class local_inscricoes_external extends external_api {
         try {
             $user = local_inscricoes_add_user($idpessoa);
             if ($context->contextlevel == CONTEXT_COURSECAT) {
-                local_inscricoes_add_cohort_member($context->id, $user->id, $role_shortname, $edition, $registration->createcohortbyedition);
+                local_inscricoes_add_cohort_member($context->id, $user->id, $role_shortname, $edition, $activity->createcohortbyedition);
             } else {
                 return get_string('not_coursecat_context', 'local_inscricoes');
             }
-            local_inscricoes_add_aditional_fields($registration->id, $user->id, $aditional_fields);
+            local_inscricoes_add_aditional_fields($activity->id, $user->id, $aditional_fields);
         } catch (dml_write_exception $e) {
             return '40-' . $e->getMessage() . ' - ' . $e->debuginfo;
         } catch (Exception $e) {

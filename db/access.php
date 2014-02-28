@@ -4,7 +4,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $capabilities = array(
 
-    'local/inscricoes:manage' => array(
+    'local/inscricoes:configure_activity' => array(
         'riskbitmask' => RISK_PERSONAL,
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSECAT,
@@ -13,7 +13,7 @@ $capabilities = array(
         )
     ),
 
-    'local/inscricoes:config' => array(
+    'local/inscricoes:configure_report' => array(
         'riskbitmask' => RISK_PERSONAL,
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSECAT,
