@@ -11,45 +11,26 @@ function xmldb_local_inscricoes_upgrade($oldversion) {
 
     $dbman = $DB->get_manager(); // Loads ddl manager and xmldb classes.
 
-/*
-    if ($oldversion < 2014021004) {
+    if ($oldversion < 2014021009) {
 
         // ---------------------------------------------------------------------------
-        $table = new xmldb_table('inscricoes_config_reports');
+        $table = new xmldb_table('inscricoes_editions');
 
-        $field = new xmldb_field('minoptionalcourses', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, '0');
-        $dbman->change_field_precision($table, $field);
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('externalactivityid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('externaleditionid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('externaleditionname', XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
 
-        $field = new xmldb_field('maxoptionalcourses', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, '0');
-        $dbman->change_field_precision($table, $field);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('activityid-editionid', XMLDB_KEY_UNIQUE, array('externalactivityid', 'externaleditionid'));
 
-        // ---------------------------------------------------------------------------
-        $table = new xmldb_table('inscricoes_courses');
-
-        $field = new xmldb_field('inscribestartdate', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'workload');
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
         }
-
-        $field = new xmldb_field('inscribeenddate', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'inscribestartdate');
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
-        }
-
-        $field = new xmldb_field('coursedependencyid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'inscribeenddate');
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
-        }
-
-        $field = new xmldb_field('type', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0');
-        $dbman->change_field_precision($table, $field);
-
-        $field = new xmldb_field('workload', XMLDB_TYPE_INTEGER, '5', null, XMLDB_NOTNULL, null, '0');
-        $dbman->change_field_precision($table, $field);
-
         // Savepoint reached.
-        upgrade_plugin_savepoint(true, 2014021004, 'local', 'inscricoes');
+        upgrade_plugin_savepoint(true, 2014021009, 'local', 'inscricoes');
     }
-*/
+
     return true;
 }

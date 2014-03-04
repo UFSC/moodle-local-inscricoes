@@ -9,21 +9,21 @@ class local_inscricoes_external extends external_api {
 
     public static function subscribe_user_parameters() {
         return new external_function_parameters (
-                    array('activityid' => new external_value(PARAM_INT, 'Activity Id that comes fom de activity System'),
+                    array('activityid' => new external_value(PARAM_INT, 'Activity Id'),
+                          'editionid' => new external_value(PARAM_INT, 'Edition id'),
                           'idpessoa' => new external_value(PARAM_LONG, 'Id Pessoa do SCCP'),
                           'role' => new external_value(PARAM_TEXT, 'Subscription role'),
-                          'edition' => new external_value(PARAM_TEXT, 'Activity ddição'),
                           'aditional_fields' => new external_value(PARAM_TEXT, 'Aditional fields (JSON - [name:value]*')));
     }
 
-    public static function subscribe_user($activityid, $idpessoa, $role_shortname, $edition, $aditional_fields) {
+    public static function subscribe_user($activityid, $editionid, $idpessoa, $role_shortname, $aditional_fields) {
         global $CFG, $DB;
 
         $params = self::validate_parameters(self::subscribe_user_parameters(),
-                        array('activityid'=>$activityid, 'idpessoa'=>$idpessoa, 'role'=>$role_shortname,
-                              'edition'=>$edition, 'aditional_fields'=>$aditional_fields));
+                        array('activityid'=>$activityid, 'editionid'=>$editionid, 'idpessoa'=>$idpessoa,
+                              'role'=>$role_shortname, 'aditional_fields'=>$aditional_fields));
 
-        if(empty($role_shortname) || empty($edition)) {
+        if(empty($role_shortname)) {
             return get_string('empty_role_edition', 'local_inscricoes');
         }
 
@@ -32,6 +32,10 @@ class local_inscricoes_external extends external_api {
         }
         if(!$activity->enable) {
             return get_string('activity_not_enable', 'local_inscricoes');
+        }
+
+        if(!$edition = $DB->get_record('inscricoes_editions', array('externalactivityid'=>$activityid, 'externaleditionid'=>$editionid))) {
+            return get_string('edition_unknown', 'local_inscricoes');
         }
 
         try {
@@ -69,4 +73,45 @@ class local_inscricoes_external extends external_api {
         return new external_value(PARAM_TEXT, get_string('answer_text', 'local_inscricoes'));
     }
 
+    // ---------------------------------------------------------------------------------------------
+
+    public static function add_edition_parameters() {
+        return new external_function_parameters (
+                    array('activityid' => new external_value(PARAM_INT, 'Activity id'),
+                          'editionid' => new external_value(PARAM_INT, 'Edition id'),
+                          'editionname' => new external_value(PARAM_TEXT, 'Edition name')));
+    }
+
+    public static function add_edition($activityid, $editionid, $editionname) {
+        global $CFG, $DB;
+
+        $params = self::validate_parameters(self::add_edition_parameters(),
+                        array('activityid'=>$activityid, 'editionid'=>$editionid, 'editionname'=>$editionname));
+
+        if(!$activity = $DB->get_record('inscricoes_activities', array('externalactivityid'=>$activityid))) {
+            return get_string('activity_not_configured', 'local_inscricoes');
+        }
+        if(!$activity->enable) {
+            return get_string('activity_not_enable', 'local_inscricoes');
+        }
+
+        if($DB->record_exists('inscricoes_editions', array('externalactivityid'=>$activityid, 'externaleditionid'=>$editionid))) {
+            return get_string('ok', 'local_inscricoes');
+        }
+
+        $edition = new stdclass();
+        $edition->externalactivityid = $activityid;
+        $edition->externaleditionid = $editionid;
+        $edition->externaleditionname = addslashes($editionname);
+        $edition->timecreated = time();
+        if($DB->insert_record('inscricoes_editions', $edition)) {
+            return get_string('ok', 'local_inscricoes');
+        } else {
+            return get_string('add_edition_fail', 'local_inscricoes');
+        }
+    }
+
+    public static function add_edition_returns() {
+        return new external_value(PARAM_TEXT, get_string('answer_text', 'local_inscricoes'));
+    }
 }

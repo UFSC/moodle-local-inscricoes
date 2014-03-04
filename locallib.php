@@ -220,8 +220,9 @@ function local_inscricoes_add_cohort_member($contextid, $userid, $role, $edition
     cohort_add_member($cohort->id, $userid);
 
     if($createcohortbyedition) {
-        $name = $role . ': ' . $edition;
-        $cohort = local_inscricoes_add_cohort($name, $name, $contextid);
+        $name = $role . ': ' . $edition->externaleditionname;
+        $idnumber = $role . '_edicao:' . $edition->externaleditionid;
+        $cohort = local_inscricoes_add_cohort($name, $idnumber, $contextid);
         cohort_add_member($cohort->id, $userid);
     }
 }
