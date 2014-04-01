@@ -19,6 +19,7 @@ $string['ok'] = '1-OK';
 $string['answer_text'] = '1-OK or n-error_description';
 
 $string['finalgrade'] = 'Nota Final';
+$string['no_group'] = 'Não foram localizados grupos nos módulos';
 
 $string['idpessoa_unknown'] = '21-Idpessoa unknown';
 $string['connection_fail'] = '22-Connection to SCCP has failed';
@@ -27,7 +28,7 @@ $string['add_edition_fail'] = '24-An error occured when adding edition';
 
 $string['menu_title'] = 'Relatórios de Acompanhamento';
 $string['inscricoes:configure_activity'] = 'Configura atividade';
-$string['inscricoes:configure_report'] = 'Configura relatórios';
+$string['inscricoes:configure_report'] = 'Grade curricular';
 $string['inscricoes:see_progress'] = 'Relatório de progresso';
 $string['inscricoes:see_completion'] = 'Relatório de conclusão';
 $string['inscricoes:send_grades'] = 'Envia resultados';
@@ -70,6 +71,7 @@ $string['studentrole'] = 'Papel de estudantes: ';
 $string['minoptionalcourses'] = 'Número mínimo de módulos optativos: ';
 $string['maxoptionalcourses'] = 'Número máximo de módulos optativos: ';
 $string['optionalatonetime'] = 'Selecionar módulos optativos em bloco: ';
+$string['tutornotesassign'] = 'Tarefa para anotações dos tutores: ';
 
 $string['mandatory'] = 'obrigatório';
 $string['optional'] = 'optativo';
@@ -77,7 +79,7 @@ $string['ignore'] = 'não considerar';
 $string['not_classified'] = 'não classificado';
 
 $string['externalactivityid'] = 'Id da atividade';
-$string['externalactivityid_invalid'] = 'Id da atividade deve ser um número inteiro positivo maior que zero';
+$string['externalactivityid_invalid'] = 'Id da atividade deve ser um número inteiro positivo';
 $string['externalactivityid_exists'] = 'Este Id da atividade já está associado a outra categoria';
 $string['createcohortbyedition'] = 'Criar cohort por edição';
 

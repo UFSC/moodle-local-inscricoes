@@ -5,6 +5,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/completionlib.php');
 require_once($CFG->libdir . '/gradelib.php');
 require_once($CFG->libdir . '/csvlib.class.php');
+require_once($CFG->dirroot . '/mod/assign/locallib.php');
 require_once($CFG->dirroot.'/local/inscricoes/locallib.php');
 
 class local_inscricoes_renderer extends plugin_renderer_base {
@@ -15,16 +16,18 @@ class local_inscricoes_renderer extends plugin_renderer_base {
     private $categoryid = false;
     private $contextid = false;
     private $courses = false;
+    private $tutornotesassign = false;
 
     private $completions = false;
     private $modinfo = false;
     private $course_grade_items = false;
 
     public function show_progress_report($context, $group_name='', $days_before=15, $completed_modules=-1, $studentsorderby='name', $coursesorderby='sortorder') {
-        global $OUTPUT, $USER;
+        global $OUTPUT, $USER, $DB;
 
         $this->categoryid = $context->instanceid;
         $this->contextid = $context->id;
+        $this->tutornotesassign = $DB->get_field('inscricoes_reports', 'tutornotesassign', array('contextid'=>$context->id));
         $this->print_header();
 
         print $this->heading(get_string('report_progress', 'local_inscricoes') .
@@ -281,7 +284,7 @@ class local_inscricoes_renderer extends plugin_renderer_base {
     }
 
     private function show_group($group, $days_before=15, $num_mod_completed=-1, $studentsorderby='name') {
-        global $OUTPUT;
+        global $OUTPUT, $DB;
 
         print $this->heading('Grupo: ' . $group->name);
         print html_writer::empty_tag('BR');
@@ -289,8 +292,9 @@ class local_inscricoes_renderer extends plugin_renderer_base {
         print html_writer::start_tag('TABLE');
         print html_writer::start_tag('TR');
         print html_writer::tag('TH', '', array('ROWSPAN'=>'3'));
-        print html_writer::tag('TH', '', array('ROWSPAN'=>'3', 'BGCOLOR'=>self::$color2));
         print html_writer::tag('TH', 'Nome', array('ROWSPAN'=>'3', 'BGCOLOR'=>self::$color2, 'style'=>'vertical-align:bottom;'));
+        print html_writer::tag('TH', '', array('ROWSPAN'=>'3', 'BGCOLOR'=>self::$color2));
+        print html_writer::tag('TH', '', array('ROWSPAN'=>'3', 'BGCOLOR'=>self::$color2));
         print html_writer::tag('TH', 'Ações', array('ROWSPAN'=>'3', 'BGCOLOR'=>self::$color1, 'style'=>'vertical-align:bottom;'));
         print html_writer::tag('TH', 'Acessos', array('ROWSPAN'=>'3', 'BGCOLOR'=>self::$color2, 'style'=>'vertical-align:bottom;'));
 
@@ -355,6 +359,17 @@ class local_inscricoes_renderer extends plugin_renderer_base {
         $param_color2 = array('BGCOLOR'=>self::$color2);
 
         $students = local_inscricoes_get_students($this->contextid, $group->str_groupids, $days_before, $studentsorderby);
+
+        $noteassign_users = array();
+        if($this->tutornotesassign) {
+            $module_type = $DB->get_field('modules', 'id', array('name'=>'assign'));
+            if($cm = $DB->get_record('course_modules', array('module'=>$module_type, 'instance'=>$this->tutornotesassign))) {
+                $noteassign_cmid = $cm->id;
+                $context = context_module::instance($cm->id);
+                $noteassign_users = get_enrolled_users($context, '', 0, $userfields = 'u.id, u.firstname');
+            }
+        }
+
         $count = 0;
         $user_count = array();
         for($i=0; $i <= count($this->completions); $i++) {
@@ -364,13 +379,23 @@ class local_inscricoes_renderer extends plugin_renderer_base {
             $user->courseids = explode(',', $user->str_courseids);
             $name_url = new moodle_url('/user/profile.php', array('id'=>$userid));
             $name = html_writer::link($name_url, $user->fullname, array('target'=>'_blank', 'title'=>'Visualizar perfil de '.$user->fullname));
-            $message_img = html_writer::empty_tag('img', array('src'=>new moodle_url('/pix/t/message.gif'), 'class'=>'icon', 'title'=>'Enviar mensagem para '.$user->fullname));
+
+            $message_img = html_writer::empty_tag('img', array('src'=>new moodle_url('/pix/t/message.png'), 'class'=>'icon', 'title'=>'Enviar mensagem para '.$user->fullname));
             $message_url = new moodle_url('/message/index.php', array('user2'=>$userid));
             $message_link = html_writer::link($message_url, $message_img, array('target'=>'_blank'));
 
+            if(isset($noteassign_users[$userid])) {
+                $note_img = html_writer::empty_tag('img', array('src'=>new moodle_url('/pix/i/edit.png'), 'class'=>'icon', 'title'=>'Anotações referentes a '.$user->fullname));
+                $note_url = new moodle_url('/mod/assign/view.php', array('id'=>$noteassign_cmid, 'rownum'=>0, 'action'=>'grade', 'userid'=>$userid));
+                $note_link = html_writer::link($note_url, $note_img, array('target'=>'_blank'));
+            } else {
+                $note_link = '';
+            }
+
             $line = '';
-            $line .= html_writer::tag('TD', $message_link , $param_color2);
             $line .= html_writer::tag('TD', $name , $param_color2);
+            $line .= html_writer::tag('TD', $message_link , $param_color2);
+            $line .= html_writer::tag('TD', $note_link , $param_color2);
             if(isset($user->first_access)) {
                 $describe = "Ações nos últimos {$days_before} dias: {$user->recent_actions} | Total de ações: {$user->count_actions}";
                 $text = html_writer::tag('SPAN', $user->recent_actions . ' | ' . $user->count_actions, array('title'=>$describe));

@@ -44,7 +44,7 @@ class configure_activity_form extends moodleform {
 
         $errors = parent::validation($data, $files);
 
-        if(empty($data['externalactivityid']) || $data['externalactivityid'] < 0) {
+        if($data['externalactivityid'] < 0) {
             $errors['externalactivityid'] = get_string('externalactivityid_invalid', 'local_inscricoes');
         } else {
             $sql = "SELECT id

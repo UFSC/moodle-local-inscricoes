@@ -52,7 +52,7 @@ function local_inscricoes_get_reports($categoryid, $including_subcategories=fals
 }
 
 // return the courses that may be marked as optional or mandatory
-function local_inscricoes_get_potential_courses($contextid, $category_path) {
+function local_inscricoes_get_potential_courses($category_path) {
     global $DB;
 
     $cats = explode('/', $category_path);
@@ -62,10 +62,24 @@ function local_inscricoes_get_potential_courses($contextid, $category_path) {
                    ic.id AS icid, ic.type, ic.workload, ic.inscribestartdate, ic.inscribeenddate, ic.coursedependencyid
               FROM {course} c
          LEFT JOIN {inscricoes_courses} ic ON (ic.courseid = c.id)
-         LEFT JOIN {inscricoes_reports} ir ON (ir.id = ic.reportid AND ir.contextid = :contextid)
              WHERE c.category IN ({$str_cats})
           ORDER BY c.fullname";
-    return $DB->get_records_sql($sql, array('contextid'=>$contextid));
+    return $DB->get_records_sql($sql);
+}
+
+// return the courses that may be marked as optional or mandatory
+function local_inscricoes_get_assigns($category_path) {
+    global $DB;
+
+    $cats = explode('/', $category_path);
+    unset($cats[0]);
+    $str_cats = implode(',', $cats);
+    $sql = "SELECT ass.id, ass.name
+              FROM {course} c
+              JOIN {assign} ass ON (ass.course = c.id)
+             WHERE c.category IN ({$str_cats})
+          ORDER BY ass.name";
+    return $DB->get_records_sql_menu($sql);
 }
 
 // return the courses marked as optional or mandatory
@@ -110,8 +124,8 @@ function local_inscricoes_get_students($contextid, $str_groupids, $days_before, 
     $params = array('contextlevel'=>CONTEXT_COURSE, 'contextid'=>$contextid, 'timebefore'=>$timebefore);
 
     $sql = "SELECT ia.studentroleid
-              FROM inscricoes_reports ir
-              JOIN inscricoes_activities ia ON (ia.id = ir.activityid)
+              FROM {inscricoes_reports} ir
+              JOIN {inscricoes_activities} ia ON (ia.id = ir.activityid)
              WHERE ir.contextid = :contextid";
     $ia = $DB->get_record_sql($sql, array('contextid'=>$contextid));
     $params['roleid'] = $ia->studentroleid;
@@ -122,22 +136,22 @@ function local_inscricoes_get_students($contextid, $str_groupids, $days_before, 
                    SUM(CASE WHEN l.time >= :timebefore THEN 1 ELSE 0 END) AS recent_actions,
                    MIN(l.time) as first_access,
                    MAX(l.time) as last_access
-              FROM inscricoes_reports ir
-              JOIN inscricoes_courses ic ON (ic.reportid = ir.id AND ic.type IN (1, 2))
-              JOIN log l ON (l.course = ic.courseid)
+              FROM {inscricoes_reports} ir
+              JOIN {inscricoes_courses} ic ON (ic.reportid = ir.id AND ic.type IN (1, 2))
               JOIN (SELECT u.id, CONCAT(u.firstname, ' ', u.lastname) as fullname,
                            GROUP_CONCAT(DISTINCT c.id SEPARATOR ',') as str_courseids
-                      FROM groups g
-                      JOIN groups_members gm ON (gm.groupid = g.id)
-                      JOIN course c ON (c.id = g.courseid)
-                      JOIN context ctx ON (ctx.contextlevel = :contextlevel AND ctx.instanceid = c.id)
-                      JOIN role_assignments ra ON (ra.contextid = ctx.id AND ra.userid = gm.userid AND ra.roleid = :roleid)
-                      JOIN user u ON (u.id = ra.userid)
+                      FROM {groups} g
+                      JOIN {groups_members} gm ON (gm.groupid = g.id)
+                      JOIN {course} c ON (c.id = g.courseid)
+                      JOIN {context} ctx ON (ctx.contextlevel = :contextlevel AND ctx.instanceid = c.id)
+                      JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.userid = gm.userid AND ra.roleid = :roleid)
+                      JOIN {user} u ON (u.id = ra.userid)
                      WHERE g.id IN ({$str_groupids})
                      GROUP BY u.id
                    ) uj
-                ON (l.userid = uj.id)
+         LEFT JOIN {log} l ON (l.course = ic.courseid AND l.userid = uj.id)
              WHERE ir.contextid = :contextid
+          GROUP BY uj.id
           ORDER BY {$order}";
     return $DB->get_records_sql($sql, $params);
 }
@@ -147,9 +161,9 @@ function local_inscricoes_get_all_students($contextid) {
 
     $sql = "SELECT u.id, u.username, CONCAT(u.firstname, ' ', u.lastname) as fullname,
                    GROUP_CONCAT(DISTINCT g.name SEPARATOR ';') as groupnames
-              FROM inscricoes_reports ir
-              JOIN inscricoes_activities ia ON (ia.id = ir.activityid)
-              JOIN inscricoes_courses ic ON (ic.reportid = ir.id AND ic.type IN (1, 2))
+              FROM {inscricoes_reports} ir
+              JOIN {inscricoes_activities} ia ON (ia.id = ir.activityid)
+              JOIN {inscricoes_courses} ic ON (ic.reportid = ir.id AND ic.type IN (1, 2))
               JOIN {context} ctx ON (ctx.contextlevel = :contextlevel AND ctx.instanceid = ic.courseid)
               JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.roleid = ia.studentroleid)
               JOIN user u ON (u.id = ra.userid)

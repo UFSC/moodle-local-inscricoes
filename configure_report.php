@@ -36,6 +36,7 @@ if(empty($reports)) {
     $report->minoptionalcourses = 0;
     $report->maxoptionalcourses = 0;
     $report->optionalatonetime = 0;
+    $report->tutornotesassign = 0;
 } else {
     $count = 0;
     foreach($reports AS $rep) {
@@ -67,14 +68,14 @@ if(empty($reports)) {
     $report = reset($reports);
 }
 
-$courses = local_inscricoes_get_potential_courses($contextid, $category->path);
+$courses = local_inscricoes_get_potential_courses($category->path);
 
 /// Process any form submission.
 if (optional_param('savechanges', false, PARAM_BOOL) && confirm_sesskey()) {
-
     $report->minoptionalcourses = required_param('minoptionalcourses', PARAM_INT);
     $report->maxoptionalcourses = required_param('maxoptionalcourses', PARAM_INT);
     $report->optionalatonetime = required_param('optionalatonetime', PARAM_INT);
+    $report->tutornotesassign = required_param('tutornotesassign', PARAM_INT);
     $report->activityid = required_param('activityid', PARAM_INT);
     $report->contextid = required_param('contextid', PARAM_INT);
 
@@ -237,9 +238,15 @@ echo html_writer::tag('B', get_string('maxoptionalcourses', 'local_inscricoes'))
 echo html_writer::select($options_opt, "maxoptionalcourses", $report->maxoptionalcourses, false);
 
 echo html_writer::empty_tag('br');
-$yesnooptions = array('1'=>get_string('yes'), '0'=>get_string('no'));
+$yesno_options = array('1'=>get_string('yes'), '0'=>get_string('no'));
 echo html_writer::tag('B', get_string('optionalatonetime', 'local_inscricoes'));
-echo html_writer::select($yesnooptions, "optionalatonetime", $report->optionalatonetime, false);
+echo html_writer::select($yesno_options, "optionalatonetime", $report->optionalatonetime, false);
+
+echo html_writer::empty_tag('br');
+$assign_options = local_inscricoes_get_assigns($category->path);
+$assign_options[0] = get_string('none');
+echo html_writer::tag('B', get_string('tutornotesassign', 'local_inscricoes'));
+echo html_writer::select($assign_options, "tutornotesassign", $report->tutornotesassign, false);
 
 echo html_writer::end_tag('div');
 
