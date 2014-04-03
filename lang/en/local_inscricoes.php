@@ -19,7 +19,9 @@ $string['ok'] = '1-OK';
 $string['answer_text'] = '1-OK or n-error_description';
 
 $string['finalgrade'] = 'Nota Final';
-$string['no_group'] = 'Não foram localizados grupos nos módulos';
+$string['no_group'] = 'Não foram localizados grupos nos módulos indicados na grade curricular deste curso.<BR>Verifique com o responsável pelo curso se os grupos foram corretamente configurada.';
+$string['no_courses'] = 'Não foram localizados módulos para visualização.<BR>Verifique com o responsável pelo curso se a grade curricular foi corretamente configurada.';
+$string['no_students_in_group'] = 'Não foram localizados estudantes no grupo selecionado.';
 
 $string['idpessoa_unknown'] = '21-Idpessoa unknown';
 $string['connection_fail'] = '22-Connection to SCCP has failed';
@@ -60,6 +62,8 @@ $string['workload'] = 'Carga Horária (h)';
 $string['dependency'] = 'Pré-requisito p/ inscrição';
 $string['inscribeperiodo'] = 'Périodo de inscrições';
 $string['configurations'] = 'Configurações';
+$string['tutor'] = 'Tutor';
+$string['tutors'] = 'Tutores';
 
 $string['errors'] = 'Há valores inválidos para os campos indicados abaixo';
 $string['invalid_workload'] = 'Carga horária deve estar no intervalo [0..360]';

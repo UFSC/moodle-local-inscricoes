@@ -101,6 +101,10 @@ function local_inscricoes_get_active_courses($contextid, $order_by='fullname') {
 function local_inscricoes_get_groups($course_ids, $context, $userid) {
     global $DB;
 
+    if(empty($course_ids)) {
+        return array();
+    }
+
     if (has_capability('moodle/site:accessallgroups', $context)) {
         $join = '';
     } else {
@@ -154,6 +158,24 @@ function local_inscricoes_get_students($contextid, $str_groupids, $days_before, 
           GROUP BY uj.id
           ORDER BY {$order}";
     return $DB->get_records_sql($sql, $params);
+}
+
+function local_inscricoes_get_tutors($str_groupids) {
+    global $DB;
+
+    if(!$roleid = $DB->get_field('role', 'id', array('shortname'=>'tutorunasus'))) {
+        return array();
+    }
+
+    $sql = "SELECT DISTINCT u.id, CONCAT(u.firstname, ' ', u.lastname) as fullname
+              FROM {groups} g
+              JOIN {groups_members} gm ON (gm.groupid = g.id)
+              JOIN {course} c ON (c.id = g.courseid)
+              JOIN {context} ctx ON (ctx.contextlevel = :contextlevel AND ctx.instanceid = c.id)
+              JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.userid = gm.userid AND ra.roleid = :roleid)
+              JOIN {user} u ON (u.id = ra.userid)
+             WHERE g.id IN ({$str_groupids})";
+    return $DB->get_records_sql($sql, array('contextlevel'=>50, 'roleid'=>$roleid));
 }
 
 function local_inscricoes_get_all_students($contextid) {

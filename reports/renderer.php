@@ -36,14 +36,22 @@ class local_inscricoes_renderer extends plugin_renderer_base {
         $this->courses = local_inscricoes_get_active_courses($this->contextid);
         if(empty($this->courses)) {
             print html_writer::empty_tag('BR');
-            print html_writer::tag('h4', get_string('no_courses', 'local_inscricoes'));
+            print $OUTPUT->box_start('generalbox boxaligncenter boxwidthwide');
+            print html_writer::tag('h3', get_string('no_courses', 'local_inscricoes'));
+            print $OUTPUT->box_end();
+            $this->print_footer();
+            exit;
         }
 
         $group = false;
         $groups = local_inscricoes_get_groups(array_keys($this->courses), $context, $USER->id);
         if(empty($groups)) {
             print html_writer::empty_tag('BR');
-            print html_writer::tag('h4', get_string('no_group', 'local_inscricoes'));
+            print $OUTPUT->box_start('generalbox boxaligncenter boxwidthwide');
+            print html_writer::tag('h3', get_string('no_group', 'local_inscricoes'));
+            print $OUTPUT->box_end();
+            $this->print_footer();
+            exit;
         } else if(count($groups) > 1) {
             if(empty($group_name) || !isset($groups[$group_name])) {
                 $this->show_progress_form($groups, false, $days_before, $completed_modules, $studentsorderby, $coursesorderby);
@@ -71,6 +79,7 @@ class local_inscricoes_renderer extends plugin_renderer_base {
 
         $report = $DB->get_record('inscricoes_reports', array('contextid'=>$this->contextid));
         $this->courses = local_inscricoes_get_active_courses($this->contextid);
+
         foreach($this->courses AS $courseid=>$course) {
             $course->grade_item = grade_item::fetch_course_item($courseid);
         }
@@ -95,6 +104,16 @@ class local_inscricoes_renderer extends plugin_renderer_base {
             print $this->heading(get_string('report_completion', 'local_inscricoes') .
                                  $OUTPUT->help_icon('report_progress', 'local_inscricoes'));
             print html_writer::empty_tag('br');
+
+            if(empty($this->courses)) {
+                print html_writer::empty_tag('BR');
+                print $OUTPUT->box_start('generalbox boxaligncenter boxwidthwide');
+                print html_writer::tag('h3', get_string('no_courses', 'local_inscricoes'));
+                print $OUTPUT->box_end();
+                $this->print_footer();
+                exit;
+            }
+
             $this->show_completion_form();
 
             print html_writer::start_tag('TABLE');
@@ -286,8 +305,33 @@ class local_inscricoes_renderer extends plugin_renderer_base {
     private function show_group($group, $days_before=15, $num_mod_completed=-1, $studentsorderby='name') {
         global $OUTPUT, $DB;
 
-        print $this->heading('Grupo: ' . $group->name);
+        print $this->heading(get_string('group') . ': ' . $group->name);
         print html_writer::empty_tag('BR');
+
+        $students = local_inscricoes_get_students($this->contextid, $group->str_groupids, $days_before, $studentsorderby);
+        if(empty($students)) {
+            print $OUTPUT->box_start('generalbox boxaligncenter boxwidthwide');
+            print html_writer::tag('h3', get_string('no_students_in_group', 'local_inscricoes'));
+            print $OUTPUT->box_end();
+            $this->print_footer();
+            exit;
+        }
+
+        $tutors = local_inscricoes_get_tutors($group->str_groupids);
+        if(!empty($tutors)) {
+            if(count($tutors) == 1) {
+                $t = reset($tutors);
+                print $this->heading(get_string('tutor', 'local_inscricoes') . ': ' . $t->fullname);
+                print html_writer::empty_tag('BR');
+            } else {
+                print $this->heading(get_string('tutors', 'local_inscricoes') . ': ');
+                print html_writer::start_tag('UL');
+                foreach($tutors AS $t) {
+                    print html_writer::tag('LI', $t->fullname);
+                }
+                print html_writer::end_tag('UL');
+            }
+        }
 
         print html_writer::start_tag('TABLE');
         print html_writer::start_tag('TR');
@@ -357,8 +401,6 @@ class local_inscricoes_renderer extends plugin_renderer_base {
 
         $param_color1 = array('BGCOLOR'=>self::$color1);
         $param_color2 = array('BGCOLOR'=>self::$color2);
-
-        $students = local_inscricoes_get_students($this->contextid, $group->str_groupids, $days_before, $studentsorderby);
 
         $noteassign_users = array();
         if($this->tutornotesassign) {
