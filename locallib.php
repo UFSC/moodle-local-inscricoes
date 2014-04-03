@@ -264,6 +264,8 @@ function local_inscricoes_add_cohort_member($contextid, $userid, $role, $edition
 }
 
 function local_inscricoes_remove_cohort_member($activityid, $contextid, $userid, $role, $edition, $createcohortbyedition=false) {
+    global $DB;
+
     $has_edition = false;
     if($createcohortbyedition) {
         $idnumber = $role . '_edicao:' . $edition->externaleditionid;
