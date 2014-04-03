@@ -263,6 +263,35 @@ function local_inscricoes_add_cohort_member($contextid, $userid, $role, $edition
     }
 }
 
+function local_inscricoes_remove_cohort_member($activityid, $contextid, $userid, $role, $edition, $createcohortbyedition=false) {
+    $has_edition = false;
+    if($createcohortbyedition) {
+        $idnumber = $role . '_edicao:' . $edition->externaleditionid;
+        if($cohort = $DB->get_record('cohort', array('contextid'=>$contextid, 'idnumber'=>$idnumber))) {
+            if(cohort_is_member($cohort->id, $userid)) {
+                cohort_remove_member($cohort->id, $userid);
+            }
+        }
+
+        $editions = $DB->get_records('inscricoes_editions', array('activityid'=>$activityid));
+        foreach($editions AS $ed) {
+            $idnumber = $role . '_edicao:' . $ed->externaleditionid;
+            if($cohort = $DB->get_record('cohort', array('contextid'=>$contextid, 'idnumber'=>$idnumber))) {
+                if(cohort_is_member($cohort->id, $userid)) {
+                    $has_edition = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    if($cohort = $DB->get_record('cohort', array('contextid'=>$contextid, 'idnumber'=>$role))) {
+        if(!$has_edition && cohort_is_member($cohort->id, $userid)) {
+            cohort_remove_member($cohort->id, $userid);
+        }
+    }
+}
+
 function local_inscricoes_add_cohort($name, $idnumber, $contextid) {
     global $DB;
 
