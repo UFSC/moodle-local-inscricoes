@@ -55,7 +55,7 @@ class local_inscricoes_external extends external_api {
         try {
             $user = local_inscricoes_add_user($idpessoa);
             if ($context->contextlevel == CONTEXT_COURSECAT) {
-                local_inscricoes_add_cohort_member($context->id, $user->id, $role_shortname, $edition, $activity->createcohortbyedition);
+                local_inscricoes_add_cohort_member($context->id, $user->id, $role, $edition, $activity->createcohortbyedition);
             } else {
                 return get_string('not_coursecat_context', 'local_inscricoes');
             }

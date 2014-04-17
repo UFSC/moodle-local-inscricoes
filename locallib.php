@@ -91,12 +91,13 @@ function local_inscricoes_add_user($idpessoa) {
 }
 
 function local_inscricoes_add_cohort_member($contextid, $userid, $role, $edition, $createcohortbyedition=false) {
-    $cohort = local_inscricoes_add_cohort($role, $role, $contextid);
+    $role_name = role_get_name($role);
+    $cohort = local_inscricoes_add_cohort($role_name, $role->shortname, $contextid);
     cohort_add_member($cohort->id, $userid);
 
     if($createcohortbyedition) {
-        $name = $role . ': ' . $edition->externaleditionname;
-        $idnumber = $role . '_edicao:' . $edition->externaleditionid;
+        $name = $role_name . ': ' . $edition->externaleditionname;
+        $idnumber = $role->shortname . '_edicao:' . $edition->externaleditionid;
         $cohort = local_inscricoes_add_cohort($name, $idnumber, $contextid);
         cohort_add_member($cohort->id, $userid);
     }
