@@ -17,7 +17,7 @@ require_capability('local/inscricoes:configure_activity', $context);
 
 $category = $DB->get_record('course_categories', array('id'=>$context->instanceid), '*', MUST_EXIST);
 $returnurl = new moodle_url('/course/index.php', array('categoryid'=>$category->id));
-$baseurl = new moodle_url('/local/inscricoes/configure_activity.php', array('contextid'=>$contextid));
+$baseurl = new moodle_url('/local/inscricoes/index.php', array('contextid'=>$contextid));
 
 $PAGE->set_pagelayout('report');
 $PAGE->set_context($context);
@@ -31,7 +31,6 @@ if(empty($activities)) {
     $activity->id = 0;
     $activity->contextid = $contextid;
     $activity->externalactivityid = 0;
-    $activity->studentroleid = 0;
     $activity->createcohortbyedition = 0;
     $activity->enable = 0;
 } else {
@@ -50,7 +49,7 @@ if(empty($activities)) {
         foreach($activities AS $reg) {
             $contextcat = context::instance_by_id($reg->contextid, MUST_EXIST);
             $category = $DB->get_record('course_categories', array('id'=>$contextcat->instanceid));
-            $url = new moodle_url('/local/inscricoes/configure_activity.php', array('contextid'=>$reg->contextid));
+            $url = new moodle_url('/local/inscricoes/index.php', array('contextid'=>$reg->contextid));
             echo html_writer::tag('LI', html_writer::link($url, $category->name));
         }
         echo html_writer::end_tag('UL');

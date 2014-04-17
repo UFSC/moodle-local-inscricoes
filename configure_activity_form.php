@@ -24,13 +24,6 @@ class configure_activity_form extends moodleform {
         $mform->addRule('externalactivityid', get_string('required'), 'required', null, 'client');
         $mform->setType('externalactivityid', PARAM_INT);
 
-        $options_role = array();
-        $gradebookroles = explode(',', $CFG->gradebookroles);
-        foreach($gradebookroles AS $rid) {
-            $options_role[$rid] = $DB->get_field('role', 'shortname', array('id'=>$rid));
-        }
-        $mform->addElement('select', 'studentroleid', get_string('studentrole', 'local_inscricoes'), $options_role);
-
         $mform->addElement('selectyesno', 'createcohortbyedition', get_string('createcohortbyedition', 'local_inscricoes'));
         $mform->addElement('selectyesno', 'enable', get_string('enable'));
 

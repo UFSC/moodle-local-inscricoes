@@ -5,8 +5,8 @@
     include('../../../config.php');
     include($CFG->libdir . '/filelib.php');
 
-    $address = 'https://mariani.moodle.ufsc.br/moodle-26';
-    $token = '056a6b15bd85c7fa4ba8e9801058c975';
+    $address = 'https://mariani.moodle.ufsc.br/unasus-cp';
+    $token = '661e134668add6e7b2cabec3e6b0efad';
 
     // ---------------------------------------------------------
     $function = 'local_inscricoes_add_edition';
