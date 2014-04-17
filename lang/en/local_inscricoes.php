@@ -4,6 +4,8 @@ $string['pluginname'] = 'Sistema de Inscrições';
 $string['pluginname_desc'] = 'Define as rotinas de recepção de dados do Sistema de Inscrições';
 $string['curriculumcontrol'] = 'Controle Curricular';
 
+$string['inscricoes:configure_activity'] = 'Vincular atividades do Sistema de Inscrições a categorias';
+
 $string['ws_inscricoes_url'] = 'URL do Sistema de Inscrições';
 $string['ws_inscricoes_login'] = 'Id. Usuario WS do Sistema de Inscrições';
 $string['ws_inscricoes_password'] = 'Senha WS do Sistema de Inscrições';
@@ -23,8 +25,6 @@ $string['idpessoa_unknown'] = '21-Idpessoa unknown';
 $string['connection_fail'] = '22-Connection to SCCP has failed';
 $string['add_user_fail'] = '23-An error occured when adding user';
 $string['add_edition_fail'] = '24-An error occured when adding edition';
-
-$string['inscricoes:configure_activity'] = 'Configura atividade';
 
 $string['externalactivityid'] = 'Id da atividade';
 $string['externalactivityid_invalid'] = 'Id da atividade deve ser um número inteiro positivo';
