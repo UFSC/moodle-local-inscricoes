@@ -13,7 +13,7 @@ class local_inscricoes_external extends external_api {
                           'editionid' => new external_value(PARAM_INT, 'Edition id'),
                           'idpessoa' => new external_value(PARAM_LONG, 'Id Pessoa do SCCP'),
                           'role' => new external_value(PARAM_TEXT, 'Subscription role'),
-                          'aditional_fields' => new external_value(PARAM_TEXT, 'Aditional fields (JSON - [name:value]*')));
+                          'aditional_fields' => new external_value(PARAM_TEXT, 'Aditional fields (JSON - [name:key:value]*')));
     }
 
     public static function subscribe_user($activityid, $editionid, $idpessoa, $role_shortname, $aditional_fields) {

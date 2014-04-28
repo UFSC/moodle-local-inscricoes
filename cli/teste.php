@@ -31,7 +31,7 @@
     $params['editionid'] = 2;
     $params['idpessoa'] = 100000000220587; //Daniel
     $params['role'] = 'student';
-    $params['aditional_fields'] = json_encode(array('cbo'=>'12345', 'atividade'=>'enfermeiro'));
+    $params['aditional_fields'] = json_encode(array( array('cbo', '12345', 'Enfermeiro'), array('atividade', 'At.Enfermeiro')));
     send_rest($address, $token, $function, $params);
 
     $params = array();
@@ -39,7 +39,7 @@
     $params['editionid'] = 2;
     $params['idpessoa'] = 100000000375045; //Caio
     $params['role'] = 'student';
-    $params['aditional_fields'] = json_encode(array('cbo'=>'23456', 'atividade'=>'engenheiro'));
+    $params['aditional_fields'] = json_encode(array( array('cbo', '23456', 'Engenheiro'), array('atividade', 'At.Engenheiro')));
     send_rest($address, $token, $function, $params);
 
     $params = array();
@@ -47,7 +47,7 @@
     $params['editionid'] = 2;
     $params['idpessoa'] = 100000000471528; //Francisco
     $params['role'] = 'student';
-    $params['aditional_fields'] = json_encode(array('cbo'=>'34567', 'atividade'=>'programador'));
+    $params['aditional_fields'] = json_encode(array( array('cbo', '34567', 'Programador'), array('atividade', 'At.Programador')));
     send_rest($address, $token, $function, $params);
 
     $params = array();
@@ -55,7 +55,7 @@
     $params['editionid'] = 2;
     $params['idpessoa'] = 100000000329086; //Julião
     $params['role'] = 'student';
-    $params['aditional_fields'] = json_encode(array('cbo'=>'34567', 'atividade'=>'programador'));
+    $params['aditional_fields'] = json_encode(array( array('cbo', '34567', 'Programador'), array('atividade', 'At.Programador')));
     send_rest($address, $token, $function, $params);
 
     $params = array();

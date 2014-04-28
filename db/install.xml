@@ -22,11 +22,11 @@
         <INDEX NAME="inscfg_ena_ix" UNIQUE="false" FIELDS="enable"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="inscricoes_user_fields" COMMENT="inscricoes_user_fields">
+    <TABLE NAME="inscricoes_key_fields" COMMENT="inscricoes_key_fields">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="activityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="field" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="name" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="value" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
@@ -35,8 +35,21 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="insuser_act_ix" UNIQUE="false" FIELDS="activityid"/>
-        <INDEX NAME="insuser_use_ix" UNIQUE="false" FIELDS="userid"/>
+        <INDEX NAME="inskey_actnk_ix" UNIQUE="true" FIELDS="activityid,field,name"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="inscricoes_user_fields" COMMENT="inscricoes_user_fields">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="keyid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="insuser_uk_ix" UNIQUE="unique" FIELDS="userid, keyid"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="inscricoes_editions" COMMENT="inscricoes_editions table">
