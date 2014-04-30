@@ -49,7 +49,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="insuser_uk_ix" UNIQUE="unique" FIELDS="userid, keyid"/>
+        <INDEX NAME="insuser_uk_ix" UNIQUE="true" FIELDS="userid, keyid"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="inscricoes_editions" COMMENT="inscricoes_editions table">
@@ -64,7 +64,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="inscedit_extext_uix" UNIQUE="true" FIELDS="externalactivityid, externaleditionid"/>
+        <INDEX NAME="inscedit_extext_uix" UNIQUE="true" FIELDS="activityid, externaleditionid"/>
       </INDEXES>
     </TABLE>
   </TABLES>
