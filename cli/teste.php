@@ -81,7 +81,16 @@
     $params['role'] = 'teacher';
     $params['aditional_fields'] = '';
     send_rest($address, $token, $function, $params);
+
     // ---------------------------------------------------------
+    $function = 'local_inscricoes_unsubscribe_user';
+
+    $params = array();
+    $params['activityid'] = 1;
+    $params['editionid'] = 2;
+    $params['idpessoa'] = 100000000220587; //Daniel
+    $params['role'] = 'student';
+    send_rest($address, $token, $function, $params);
 
 
 function send_rest($address, $token, $function, $params) {

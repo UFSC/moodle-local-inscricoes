@@ -90,14 +90,42 @@ function local_inscricoes_add_user($idpessoa) {
     return $user;
 }
 
+function local_inscricoes_cohort_idnumber_sql($table_prefix='', $edition=false, $role_shortname='student') {
+    $prefix = empty($table_prefix) ? '' : $table_prefix . '.';
+    if($edition) {
+        return "CONCAT('si_{$role_shortname}_edicao:', {$prefix}externaleditionid)";
+    } else {
+        return "'si_{$role_shortname}'";
+    }
+}
+
+function local_inscricoes_cohort_idnumber($role_shortname, $edition=false) {
+    if($edition) {
+        return "si_{$role_shortname}_edicao:{$edition->externaleditionid}";
+    } else {
+        return "si_{$role_shortname}";
+    }
+}
+
+function local_inscricoes_cohort_name($role_name, $edition=false) {
+    if($edition) {
+        return "{$role_name}: {$edition->externaleditionname} (SI)";
+    } else {
+        return "{$role_name} (SI)";
+    }
+}
+
 function local_inscricoes_add_cohort_member($contextid, $userid, $role, $edition, $createcohortbyedition=false) {
     $role_name = role_get_name($role);
-    $cohort = local_inscricoes_add_cohort($role_name, $role->shortname, $contextid);
+
+    $name = local_inscricoes_cohort_name($role_name);
+    $idnumber = local_inscricoes_cohort_idnumber($role->shortname);
+    $cohort = local_inscricoes_add_cohort($name, $idnumber, $contextid);
     cohort_add_member($cohort->id, $userid);
 
     if($createcohortbyedition) {
-        $name = $role_name . ': ' . $edition->externaleditionname;
-        $idnumber = $role->shortname . '_edicao:' . $edition->externaleditionid;
+        $name = local_inscricoes_cohort_name($role_name, $edition);
+        $idnumber = local_inscricoes_cohort_idnumber($role->shortname, $edition);
         $cohort = local_inscricoes_add_cohort($name, $idnumber, $contextid);
         cohort_add_member($cohort->id, $userid);
     }
@@ -108,7 +136,7 @@ function local_inscricoes_remove_cohort_member($activityid, $contextid, $userid,
 
     $has_edition = false;
     if($createcohortbyedition) {
-        $idnumber = $role . '_edicao:' . $edition->externaleditionid;
+        $idnumber = local_inscricoes_cohort_idnumber($role->shortname, $edition);
         if($cohort = $DB->get_record('cohort', array('contextid'=>$contextid, 'idnumber'=>$idnumber))) {
             if(cohort_is_member($cohort->id, $userid)) {
                 cohort_remove_member($cohort->id, $userid);
@@ -117,7 +145,7 @@ function local_inscricoes_remove_cohort_member($activityid, $contextid, $userid,
 
         $editions = $DB->get_records('inscricoes_editions', array('activityid'=>$activityid));
         foreach($editions AS $ed) {
-            $idnumber = $role . '_edicao:' . $ed->externaleditionid;
+            $idnumber = local_inscricoes_cohort_idnumber($role->shortname, $ed);
             if($cohort = $DB->get_record('cohort', array('contextid'=>$contextid, 'idnumber'=>$idnumber))) {
                 if(cohort_is_member($cohort->id, $userid)) {
                     $has_edition = true;
@@ -127,7 +155,8 @@ function local_inscricoes_remove_cohort_member($activityid, $contextid, $userid,
         }
     }
 
-    if($cohort = $DB->get_record('cohort', array('contextid'=>$contextid, 'idnumber'=>$role))) {
+    $idnumber = local_inscricoes_cohort_idnumber($role->shortname);
+    if($cohort = $DB->get_record('cohort', array('contextid'=>$contextid, 'idnumber'=>$idnumber))) {
         if(!$has_edition && cohort_is_member($cohort->id, $userid)) {
             cohort_remove_member($cohort->id, $userid);
         }

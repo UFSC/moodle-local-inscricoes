@@ -112,17 +112,13 @@ class local_inscricoes_external extends external_api {
         if(!$role = $DB->get_record('role', array('shortname'=>$role_shortname))) {
             return get_string('role_unknown', 'local_inscricoes');
         }
-        $invalid_roles = array('manager', 'guest', 'user');
-        if(in_array($role_shortname, $invalid_roles)) {
-            return get_string('role_invalid', 'local_inscricoes');
-        }
 
         if(!$user = $DB->get_record('user', array('idnumber'=>$idpessoa))) {
             return get_string('idpessoa_unknown', 'local_inscricoes');
         }
         try {
             if ($context->contextlevel == CONTEXT_COURSECAT) {
-                local_inscricoes_remove_cohort_member($activity->id, $context->id, $user->id, $role_shortname, $edition, $activity->createcohortbyedition);
+                local_inscricoes_remove_cohort_member($activity->id, $context->id, $user->id, $role, $edition, $activity->createcohortbyedition);
             } else {
                 return get_string('not_coursecat_context', 'local_inscricoes');
             }
