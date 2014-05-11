@@ -182,49 +182,45 @@ function local_inscricoes_add_cohort($name, $idnumber, $contextid) {
 function local_inscricoes_add_aditional_fields($activityid, $userid, $aditional_fields) {
     global $DB;
 
-    $sql = "SELECT iuf.keyid, 1
-              FROM {inscricoes_user_fields} iuf
-              JOIN {inscricoes_key_fields} ikf ON (ikf.id = iuf.keyid)
-             WHERE iuf.userid = :userid
-               AND ikf.activityid = :activityid";
-    $user_keys = $DB->get_records_sql_menu($sql, array('activityid'=>$activityid, 'userid'=>$userid));
+    $sql = "DELETE {inscricoes_user_fields}
+              FROM {inscricoes_user_fields}
+              JOIN {inscricoes_key_fields} ikf ON (ikf.id = keyid)
+             WHERE userid = :userid
+               AND activityid = :activityid";
+    $DB->execute($sql, array('activityid'=>$activityid, 'userid'=>$userid));
 
     $fields = json_decode($aditional_fields, true);
     if(!empty($fields)) {
         $insc = new stdClass();
         $insc->userid = $userid;
         $insc->timemodified = time();
+
         foreach($fields AS $f) {
-            if(count($f) < 2) {
-                // error
-                continue;
-            }
-            $field  = addslashes($f[0]);
-            $name   = addslashes($f[1]);
-            $value = count($f) > 2 ? $f[2] : $f[1];
-            if($key = $DB->get_record('inscricoes_key_fields', array('activityid'=>$activityid, 'field'=>$field, 'name'=>$name))) {
-                if($value != $key->value) {
-                    $DB->set_field('inscricoes_key_fields', 'value', addslashes($value), array('id'=>$key->id));
+            if(count($f) >= 2) {
+                $field  = addslashes($f[0]);
+                $name   = addslashes($f[1]);
+                $value = count($f) > 2 ? $f[2] : $f[1];
+                if($key = $DB->get_record('inscricoes_key_fields', array('activityid'=>$activityid, 'field'=>$field, 'name'=>$name))) {
+                    if($value != $key->value) {
+                        $new_key = new stdClass();
+                        $new_key->id = $key->id;
+                        $new_key->value = addslashes($value);
+                        $new_key->timemodified = time();
+                        $DB->update_record('inscricoes_key_fields', $new_key);
+                    }
+                } else {
+                    $key = new stdClass();
+                    $key->activityid = $activityid;
+                    $key->field = $field;
+                    $key->name = $name;
+                    $key->value = addslashes($value);
+                    $key->timemodified = time();
+                    $key->id = $DB->insert_record('inscricoes_key_fields', $key);
                 }
-            } else {
-                $key = new stdClass();
-                $key->activityid = $activityid;
-                $key->field = $field;
-                $key->name = $name;
-                $key->value = addslashes($value);
-                $key->timemodified = time();
-                $key->id = $DB->insert_record('inscricoes_key_fields', $key);
-            }
-            if(isset($user_keys[$key->id])) {
-                unset($user_keys[$key->id]);
-            } else {
                 $insc->keyid = $key->id;
                 $DB->insert_record('inscricoes_user_fields', $insc);
             }
         }
-    }
-    foreach($user_keys AS $uk=>$v) {
-        $DB->delete_record('inscricoes_user_fields', array('userid'=>$userid, 'keyid'=>$uk));
     }
 }
 
