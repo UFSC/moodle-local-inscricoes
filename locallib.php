@@ -37,6 +37,12 @@ function local_inscricoes_get_activities($categoryid, $only_enable=false, $inclu
     return $DB->get_records_sql($sql, array('contextlevel'=>CONTEXT_COURSECAT));
 }
 
+function local_inscricoes_get_editions($actiityid) {
+    global $DB;
+
+    return $DB->get_records('inscricoes_editions', array('activityid'=>$actiityid));
+}
+
 function local_inscricoes_add_user($idpessoa) {
     global $DB, $CFG;
 
