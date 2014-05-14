@@ -176,7 +176,6 @@ function local_inscricoes_remove_cohort_member($activityid, $contextid, $userid,
 function local_inscricoes_add_cohort($name, $idnumber, $contextid) {
     global $DB;
 
-    $name = addslashes($name);
     if(!$cohort = $DB->get_record('cohort', array('contextid'=>$contextid, 'idnumber'=>$idnumber))) {
         $cohort = new stdClass();
         $cohort->contextid = $contextid;
@@ -207,14 +206,14 @@ function local_inscricoes_add_aditional_fields($activityid, $userid, $aditional_
 
         foreach($fields AS $f) {
             if(count($f) >= 2) {
-                $field  = addslashes($f[0]);
-                $name   = addslashes($f[1]);
+                $field  = $f[0];
+                $name   = $f[1];
                 $value = count($f) > 2 ? $f[2] : $f[1];
                 if($key = $DB->get_record('inscricoes_key_fields', array('activityid'=>$activityid, 'field'=>$field, 'name'=>$name))) {
                     if($value != $key->value) {
                         $new_key = new stdClass();
                         $new_key->id = $key->id;
-                        $new_key->value = addslashes($value);
+                        $new_key->value = $value;
                         $new_key->timemodified = time();
                         $DB->update_record('inscricoes_key_fields', $new_key);
                     }
@@ -223,7 +222,7 @@ function local_inscricoes_add_aditional_fields($activityid, $userid, $aditional_
                     $key->activityid = $activityid;
                     $key->field = $field;
                     $key->name = $name;
-                    $key->value = addslashes($value);
+                    $key->value = $value;
                     $key->timemodified = time();
                     $key->id = $DB->insert_record('inscricoes_key_fields', $key);
                 }

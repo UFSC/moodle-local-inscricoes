@@ -157,19 +157,24 @@ class local_inscricoes_external extends external_api {
             return get_string('activity_not_enable', 'local_inscricoes');
         }
 
-        if($DB->record_exists('inscricoes_editions', array('activityid'=>$activity->id, 'externaleditionid'=>$editionid))) {
-            return get_string('ok', 'local_inscricoes');
-        }
-
-        $edition = new stdclass();
-        $edition->activityid = $activity->id;
-        $edition->externaleditionid = $editionid;
-        $edition->externaleditionname = addslashes($editionname);
-        $edition->timecreated = time();
-        if($DB->insert_record('inscricoes_editions', $edition)) {
-            return get_string('ok', 'local_inscricoes');
+        if($edition = $DB->get_record('inscricoes_editions', array('activityid'=>$activity->id, 'externaleditionid'=>$editionid))) {
+            $edition->externaleditionname = $editionname;
+            if($DB->update_record('inscricoes_editions', $edition)) {
+                return get_string('ok', 'local_inscricoes');
+            } else {
+                return get_string('add_edition_fail', 'local_inscricoes');
+            }
         } else {
-            return get_string('add_edition_fail', 'local_inscricoes');
+            $edition = new stdclass();
+            $edition->activityid = $activity->id;
+            $edition->externaleditionid = $editionid;
+            $edition->externaleditionname = $editionname;
+            $edition->timecreated = time();
+            if($DB->insert_record('inscricoes_editions', $edition)) {
+                return get_string('ok', 'local_inscricoes');
+            } else {
+                return get_string('add_edition_fail', 'local_inscricoes');
+            }
         }
     }
 
