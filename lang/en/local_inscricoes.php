@@ -25,6 +25,7 @@ $string['idpessoa_unknown'] = '21-Idpessoa unknown';
 $string['connection_fail'] = '22-Connection to SCCP has failed';
 $string['add_user_fail'] = '23-An error occured when adding user';
 $string['add_edition_fail'] = '24-An error occured when adding edition';
+$string['email_empty'] = '25-Email em branco no SCCP';
 
 $string['externalactivityid'] = 'Id da atividade';
 $string['externalactivityid_invalid'] = 'Id da atividade deve ser um número inteiro positivo';

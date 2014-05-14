@@ -61,6 +61,10 @@ function local_inscricoes_add_user($idpessoa) {
         }
     }
 
+    if(empty($pessoa->email)) {
+        throw new Exception(get_string('email_empty', 'local_inscricoes'));
+    }
+
     if($user) {
         if($user->idnumber != $idpessoa) {
             $upuser = new stdClass();
