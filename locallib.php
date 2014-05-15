@@ -48,7 +48,6 @@ function local_inscricoes_add_user($idpessoa) {
 
     if(!$user = $DB->get_record('user', array('username'=>$idpessoa))) {
         try {
-            sccp::conecta();
             if(!$pessoa = sccp::obtem_pessoa($idpessoa)) {
                 throw new Exception(get_string('idpessoa_unknown', 'local_inscricoes'));
             }
