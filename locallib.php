@@ -47,21 +47,15 @@ function local_inscricoes_add_user($idpessoa) {
     global $DB, $CFG;
 
     if(!$user = $DB->get_record('user', array('username'=>$idpessoa))) {
-        try {
-            if(!$pessoa = sccp::obtem_pessoa($idpessoa)) {
-                throw new Exception(get_string('idpessoa_unknown', 'local_inscricoes'));
-            }
-        } catch (Exception $e) {
-            throw new Exception(get_string('connection_fail', 'local_inscricoes'));
+        if(!$pessoa = sccp::obtem_pessoa($idpessoa)) {
+            throw new Exception(get_string('idpessoa_unknown', 'local_inscricoes'));
         }
-
+        if(empty($pessoa->email)) {
+            throw new Exception(get_string('email_empty', 'local_inscricoes'));
+        }
         if(isset($pessoa->cpf)) {
             $user = $DB->get_record('user', array('username'=>$pessoa->cpf));
         }
-    }
-
-    if(empty($pessoa->email)) {
-        throw new Exception(get_string('email_empty', 'local_inscricoes'));
     }
 
     if($user) {
