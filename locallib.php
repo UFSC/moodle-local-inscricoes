@@ -197,31 +197,38 @@ function local_inscricoes_add_aditional_fields($activityid, $userid, $aditional_
         $insc->userid = $userid;
         $insc->timemodified = time();
 
+        $added_fields = array();
         foreach($fields AS $f) {
             if(count($f) >= 2) {
-                $field  = $f[0];
-                $name   = $f[1];
-                $value = count($f) > 2 ? $f[2] : $f[1];
-                if($key = $DB->get_record('inscricoes_key_fields', array('activityid'=>$activityid, 'field'=>$field, 'name'=>$name))) {
-                    if($value != $key->value) {
-                        $new_key = new stdClass();
-                        $new_key->id = $key->id;
-                        $new_key->value = $value;
-                        $new_key->timemodified = time();
-                        $DB->update_record('inscricoes_key_fields', $new_key);
+                $field  = trim($f[0]);
+                $name   = trim($f[1]);
+                if(!empty($field) &&  !empty($name) && !isset($added_fields[$field])) {
+                    $value = count($f) > 2 ? $f[2] : $f[1];
+                    if($key = $DB->get_record('inscricoes_key_fields', array('activityid'=>$activityid, 'field'=>$field, 'name'=>$name))) {
+                        if($value != $key->value) {
+                            $new_key = new stdClass();
+                            $new_key->id = $key->id;
+                            $new_key->value = $value;
+                            $new_key->timemodified = time();
+                            $DB->update_record('inscricoes_key_fields', $new_key);
+                        }
+                    } else {
+                        $key = new stdClass();
+                        $key->activityid = $activityid;
+                        $key->field = $field;
+                        $key->name = $name;
+                        $key->value = $value;
+                        $key->timemodified = time();
+                        $key->id = $DB->insert_record('inscricoes_key_fields', $key);
                     }
-                } else {
-                    $key = new stdClass();
-                    $key->activityid = $activityid;
-                    $key->field = $field;
-                    $key->name = $name;
-                    $key->value = $value;
-                    $key->timemodified = time();
-                    $key->id = $DB->insert_record('inscricoes_key_fields', $key);
+                    $insc->keyid = $key->id;
+                    $DB->insert_record('inscricoes_user_fields', $insc);
+                    $added_fields[$field]=true;
                 }
-                $insc->keyid = $key->id;
-                $DB->insert_record('inscricoes_user_fields', $insc);
+            } else {
+                var_dump($field, $name, $value, $fields); exit;
             }
+
         }
     }
 }
