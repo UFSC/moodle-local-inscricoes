@@ -225,8 +225,6 @@ function local_inscricoes_add_aditional_fields($activityid, $userid, $aditional_
                     $DB->insert_record('inscricoes_user_fields', $insc);
                     $added_fields[$field]=true;
                 }
-            } else {
-                var_dump($field, $name, $value, $fields); exit;
             }
 
         }
