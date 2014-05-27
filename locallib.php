@@ -198,11 +198,17 @@ function local_inscricoes_add_aditional_fields($activityid, $userid, $aditional_
         $insc->timemodified = time();
 
         $added_fields = array();
+        $has_empty_field = false;
+        $has_duplicated_field = false;
         foreach($fields AS $f) {
             if(count($f) >= 2) {
-                $field  = trim($f[0]);
-                $name   = trim($f[1]);
-                if(!empty($field) &&  !empty($name) && !isset($added_fields[$field])) {
+                $field = trim($f[0]);
+                $name  = trim($f[1]);
+                if(empty($field) || empty($name)) {
+                    $has_empty_field = true;
+                } else if(isset($added_fields[$field])) {
+                    $has_duplicated_field = true;
+                } else {
                     $value = count($f) > 2 ? $f[2] : $f[1];
                     if($key = $DB->get_record('inscricoes_key_fields', array('activityid'=>$activityid, 'field'=>$field, 'name'=>$name))) {
                         if($value != $key->value) {
@@ -226,7 +232,11 @@ function local_inscricoes_add_aditional_fields($activityid, $userid, $aditional_
                     $added_fields[$field]=true;
                 }
             }
-
+        }
+        if($has_empty_field) {
+            throw new Exception(get_string('has_empty_field', 'local_inscricoes'));
+        } else if($has_duplicated_field) {
+            throw new Exception(get_string('has_duplicated_field', 'local_inscricoes'));
         }
     }
 }
