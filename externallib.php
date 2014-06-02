@@ -55,7 +55,7 @@ class local_inscricoes_external extends external_api {
         try {
             $user = local_inscricoes_add_user($idpessoa);
             if ($context->contextlevel == CONTEXT_COURSECAT) {
-                local_inscricoes_add_cohort_member($context->id, $user->id, $role, $edition, $activity->createcohortbyedition);
+                local_inscricoes_add_cohort_member($context->id, $user->id, $role, $edition);
             } else {
                 return get_string('not_coursecat_context', 'local_inscricoes');
             }
@@ -118,7 +118,7 @@ class local_inscricoes_external extends external_api {
         }
         try {
             if ($context->contextlevel == CONTEXT_COURSECAT) {
-                local_inscricoes_remove_cohort_member($activity->id, $context->id, $user->id, $role, $edition, $activity->createcohortbyedition);
+                local_inscricoes_remove_cohort_member($activity->id, $context->id, $user->id, $role, $edition);
             } else {
                 return get_string('not_coursecat_context', 'local_inscricoes');
             }
@@ -181,4 +181,47 @@ class local_inscricoes_external extends external_api {
     public static function add_edition_returns() {
         return new external_value(PARAM_TEXT, get_string('answer_text', 'local_inscricoes'));
     }
+
+    // ---------------------------------------------------------------------------------------------
+
+    public static function get_user_status_parameters() {
+        return new external_function_parameters (
+                    array('idpessoa'   => new external_value(PARAM_LONG, 'Id Pessoa do SCCP'),
+                          'activityid' => new external_value(PARAM_INT, 'Activity id')));
+    }
+
+    public static function get_user_status($idpessoa, $activityid) {
+        global $DB;
+
+        $params = self::validate_parameters(self::get_user_status_parameters(),
+                        array('idpessoa'=>$idpessoa, 'activityid'=>$activityid));
+
+        if(!$user = $DB->get_record('user', array('idnumber'=>$idpessoa))) {
+            return array('userid'=>0, 'editions'=>array());
+        }
+
+        if(!$activity = $DB->get_record('inscricoes_activities', array('externalactivityid'=>$activityid))) {
+            return array('userid'=>$user->id, 'editions'=>array());
+        }
+
+        $sql = "SELECT DISTINCT ie.externaleditionid
+                 FROM {inscricoes_activities} ia
+                 JOIN {inscricoes_editions} ie ON (ie.activityid = ia.id)
+                 JOIN {cohort} ch ON (ch.contextid = ia.contextid AND ch.idnumber LIKE CONCAT ('si_%_edicao:', ie.externaleditionid))
+                 JOIN {cohort_members} cm ON (cm.cohortid = ch.id)
+                WHERE ia.id = :activityid
+                  AND cm.userid = :userid";
+        $editionids = $DB->get_records_sql($sql, array('activityid'=>$activity->id, 'userid'=>$user->id));
+        return array('userid'=>$user->id, 'editions'=>array_keys($editionids));
+    }
+
+    public static function get_user_status_returns() {
+        return new external_single_structure(
+                    array(
+                        'userid'   => new external_value(PARAM_INT, 'User id'),
+                        'editions' => new external_multiple_structure(new external_value(PARAM_INT, 'Edition Id'), 'Array of Edition ids'),
+                    )
+               );
+    }
+
 }

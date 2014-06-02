@@ -32,7 +32,6 @@ $string['has_duplicated_field'] = '27-duplicated value for some aditional field'
 $string['externalactivityid'] = 'Id da atividade';
 $string['externalactivityid_invalid'] = 'Id da atividade deve ser um número inteiro positivo';
 $string['externalactivityid_exists'] = 'Este Id da atividade já está associado a outra categoria';
-$string['createcohortbyedition'] = 'Criar cohort por edição';
 
 $string['already_have_activity'] = 'Não é possível associar esta categoria a um atividade do Sistema de Inscrições
     uma vez que já há associação de atividade com outra categoria acima ou abaixo desta na hierarquia, conforme listado a seguir:';

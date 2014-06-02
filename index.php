@@ -31,7 +31,6 @@ if(empty($activities)) {
     $activity->id = 0;
     $activity->contextid = $contextid;
     $activity->externalactivityid = 0;
-    $activity->createcohortbyedition = 0;
     $activity->enable = 0;
 } else {
     $count = 0;

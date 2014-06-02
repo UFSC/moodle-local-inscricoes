@@ -24,7 +24,6 @@ class configure_activity_form extends moodleform {
         $mform->addRule('externalactivityid', get_string('required'), 'required', null, 'client');
         $mform->setType('externalactivityid', PARAM_INT);
 
-        $mform->addElement('selectyesno', 'createcohortbyedition', get_string('createcohortbyedition', 'local_inscricoes'));
         $mform->addElement('selectyesno', 'enable', get_string('enable'));
 
         $this->add_action_buttons();

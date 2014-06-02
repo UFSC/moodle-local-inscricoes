@@ -24,13 +24,23 @@ $functions = array(
                 'description' => 'Add a new edition to an activity',
                 'type'        => 'write',
         ),
+
+        'local_inscricoes_get_user_status' => array(
+                'classname'   => 'local_inscricoes_external',
+                'methodname'  => 'get_user_status',
+                'classpath'   => 'local/inscricoes/externallib.php',
+                'description' => 'Get a user status related to an activity/edition',
+                'type'        => 'read',
+        ),
 );
 
 $services = array(
         'Sistema de Inscricoes' => array(
                 'functions' => array ('local_inscricoes_subscribe_user',
                                       'local_inscricoes_unsubscribe_user',
-                                      'local_inscricoes_add_edition'),
+                                      'local_inscricoes_add_edition',
+                                      'local_inscricoes_get_user_status'
+                                     ),
                 'restrictedusers' => 1,
                 'enabled'=>1,
         )
