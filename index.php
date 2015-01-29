@@ -1,19 +1,16 @@
 <?php
 
 require('../../config.php');
-require_once($CFG->dirroot.'/local/inscricoes/locallib.php');
-require_once($CFG->dirroot.'/local/inscricoes/configure_activity_form.php');
-require_once($CFG->libdir.'/adminlib.php');
+require_once($CFG->dirroot . '/local/inscricoes/classes/inscricoes.php');
 
 $contextid = required_param('contextid', PARAM_INT);
-$activityid = optional_param('activityid', 0, PARAM_INT);
 
 require_login();
 $context = context::instance_by_id($contextid, MUST_EXIST);
 if ($context->contextlevel != CONTEXT_COURSECAT) {
     print_error('invalidcontext');
 }
-require_capability('local/inscricoes:configure_activity', $context);
+require_capability('local/inscricoes:view', $context);
 
 $category = $DB->get_record('course_categories', array('id'=>$context->instanceid), '*', MUST_EXIST);
 $returnurl = new moodle_url('/course/index.php', array('categoryid'=>$category->id));
@@ -22,62 +19,83 @@ $baseurl = new moodle_url('/local/inscricoes/index.php', array('contextid'=>$con
 $PAGE->set_pagelayout('report');
 $PAGE->set_context($context);
 $PAGE->set_url($baseurl);
-$PAGE->set_title(get_string('inscricoes:configure_activity', 'local_inscricoes'));
+$PAGE->set_title(get_string('title', 'local_inscricoes'));
 $PAGE->set_heading($COURSE->fullname);
 
-$activities = local_inscricoes_get_activities($category->id, false, true);
-if(empty($activities)) {
-    $activity = new stdclass();
-    $activity->id = 0;
-    $activity->contextid = $contextid;
-    $activity->externalactivityid = 0;
-    $activity->enable = 0;
-} else {
-    $count = 0;
-    foreach($activities AS $reg) {
-        if($reg->contextid == $contextid) {
-            $count++;
-        }
-    }
-    if($count == 0) {
-        echo $OUTPUT->header();
-        echo $OUTPUT->heading(get_string('inscricoes:configure_activity', 'local_inscricoes') . ': ' . $category->name);
-        echo $OUTPUT->box_start('generalbox boxaligncenter boxwidthwide');
-        echo get_string('already_have_activity', 'local_inscricoes');
-        echo html_writer::start_tag('UL');
-        foreach($activities AS $reg) {
-            $contextcat = context::instance_by_id($reg->contextid, MUST_EXIST);
-            $category = $DB->get_record('course_categories', array('id'=>$contextcat->instanceid));
-            $url = new moodle_url('/local/inscricoes/index.php', array('contextid'=>$reg->contextid));
-            echo html_writer::tag('LI', html_writer::link($url, $category->name));
-        }
-        echo html_writer::end_tag('UL');
-        echo $OUTPUT->box_end();
-        echo $OUTPUT->footer();
-        exit;
-    } else if($count < count($activities)) {
-        print_error('inconsistency', 'local_inscricoes', $category->name);
-    } else if($count > 1) {
-        print_error('TODO: ESTA VERSÃO NÃO SUPORTE MAIS DE UMA INSCRIÇÃO NA MESMA CATEGORIA', 'local_inscricoes');
-    }
-    $activity = reset($activities);
-}
-
-$editform = new configure_activity_form(null, array('data'=>$activity));
-
-if ($editform->is_cancelled()) {
-    redirect($returnurl);
-} else if ($data = $editform->get_data()) {
-    if ($data->id) {
-        $DB->update_record('inscricoes_activities', $data);
-    } else {
-        $data->timecreated = time();
-        $DB->insert_record('inscricoes_activities', $data);
-    }
-    redirect($returnurl);
-}
-
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('inscricoes:configure_activity', 'local_inscricoes') . ': ' . $category->name);
-echo $editform->display();
+
+$activities = $DB->get_records('inscricoes_activities', array('contextid'=>$context->id));
+if(empty($activities)) {
+    echo $OUTPUT->heading(get_string('no_activities', 'local_inscricoes'));
+    echo $OUTPUT->single_button($returnurl, get_string('back'));
+    echo $OUTPUT->footer();
+    exit;
+}
+
+$activityid = optional_param('activityid', 0, PARAM_INT);
+if(count($activities) == 1) {
+    $activity = reset($activities);
+    $activityid = $activity->id;
+} else {
+    if(isset($activities[$activityid])) {
+        $activity = $activities[$activityid];
+    } else {
+        $activityid = 0;
+        $activity = false;
+    }
+}
+
+$activities_menu = array();
+foreach($activities AS $act) {
+    $activities_menu[$act->id] = $act->externalactivityname;
+}
+
+echo $OUTPUT->heading(get_string('title', 'local_inscricoes') . ': ' . $category->name);
+
+$select = new single_select($baseurl, 'activityid', $activities_menu, $activityid);
+$select->label = get_string('activity', 'local_inscricoes');
+$select->formid = 'chooseactivity';
+echo html_writer::tag('div', $OUTPUT->render($select), array('id'=>'activity_selector'));
+
+if($activity) {
+    $additional_fields = local_inscricoes::get_additional_fields($activity->id);
+
+    $users = local_inscricoes::get_users($activity->id);
+    $values = local_inscricoes::get_additional_field_values($activity->id);
+
+    $data = array();
+    $count = 0;
+    foreach($users AS $u) {
+        $count++;
+        $line = array($count, $u->rolename, fullname($u));
+        if($additional_fields) {
+            foreach($additional_fields AS $field) {
+                if(isset($values[$u->userid][$field])) {
+                    $v =  $values[$u->userid][$field];
+                    $line[] = "{$v[1]} ({$v[0]})";
+                } else {
+                    $line[] = '';
+                }
+            }
+        }
+        $data[] = $line;
+    }
+
+    $table = new html_table();
+    $table->head = array('', get_string('role'), get_string('fullname'));
+    $table->align = array('center', 'left', 'left');
+    $table->colclasses = array('centeralign', 'leftalign', 'leftalign');
+
+    foreach($additional_fields AS $field) {
+        $table->head[] = $field;
+        $table->align[] = 'left';
+        $table->colclasses[] = 'leftalign';
+    }
+
+    $table->id = 'users';
+    $table->data = $data;
+
+    echo html_writer::tag('div', html_writer::table($table), array('id'=>'activity_users'));
+}
+
 echo $OUTPUT->footer();

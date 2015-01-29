@@ -1,3 +1,5 @@
-.local_inscricoes .msg_error {
-    color: red;
+#activity_users {
+    margin-left: auto;
+    margin-right: auto;
+    width: 80%;
 }

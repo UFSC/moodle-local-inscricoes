@@ -2,8 +2,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_inscricoes';
-$plugin->version   = 2014060107;
+$plugin->version   = 2015012900;
 $plugin->requires  = 2013111800; //Moodle 2.6.1
 $plugin->dependencies = array(
-    'local_sccp' => 2013100500,
+    'local_wsufsc' => 2014081401,
 );

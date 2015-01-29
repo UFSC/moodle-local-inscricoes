@@ -1,27 +1,20 @@
 <?php
 
-    define('CLI_SCRIPT', true);
+define('CLI_SCRIPT', true);
 
-    include('../../../config.php');
-    include($CFG->libdir . '/filelib.php');
+include(dirname(__FILE__). '/../../../config.php');
+include($CFG->libdir . '/filelib.php');
 
-    $address = 'https://mariani.moodle.ufsc.br/unasus-cp';
-    $token = '85ce612d4187a855d333664d2c0adb5c';
+$address = 'https://mariani.moodle.ufsc.br/grupos2';
+$token = '7094ccd9a54fedd982704c57f5f6b82e';
 
-    // ---------------------------------------------------------
-    $function = 'local_inscricoes_get_user_status';
-
-    $params = array();
-    $params['idpessoa'] = 100000000759196;
-    $params['activityid'] = 4;
-    send_rest($address, $token, $function, $params);
 
 
 function send_rest($address, $token, $function, $params) {
     echo "\n----------------------------------------------\n";
     echo "EXECUTANDO: {$function}\n";
     $restformat = 'json';
-    $options = array('CURLOPT_SSL_VERIFYHOST' => 1, 'CURLOPT_SSL_VERIFYPEER' => 0);
+    $options = array('CURLOPT_SSL_VERIFYHOST' => 0, 'CURLOPT_SSL_VERIFYPEER' => 0);
 
     $serverurl = $address . '/webservice/rest/server.php'. '?wstoken=' . $token . '&wsfunction=' . $function.
                             '&moodlewsrestformat=' . $restformat;
@@ -30,12 +23,18 @@ function send_rest($address, $token, $function, $params) {
     $response = $curl->post($serverurl, $params, $options);
     $curlerrno = $curl->get_errno();
     if (!empty($curlerrno)) {
-        var_dump($curlerrno, $curl->error); exit;
-    }
-    $curlinfo = $curl->get_info();
-    if ($curlinfo['http_code'] != 200) {
-        var_dump($curlinfo); exit;
+        echo "\n ----  ERRO ----- \n";
+        var_dump($curlerrno, $curl->error);
+        exit;
     }
 
+    $curlinfo = $curl->get_info();
+    if ($curlinfo['http_code'] != 200) {
+        echo "\n ----  HTTP_CODE != 200 ----- \n";
+        var_dump($curlinfo);
+        exit;
+    }
+
+    echo "\n ----  Resposta ----- \n";
     var_dump($response);
 }

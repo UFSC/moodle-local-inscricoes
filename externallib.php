@@ -3,29 +3,169 @@
 defined('MOODLE_INTERNAL') || die;
 
 require_once("{$CFG->libdir}/externallib.php");
-require_once("{$CFG->dirroot}/local/inscricoes/locallib.php");
+require_once("{$CFG->dirroot}/local/inscricoes/classes/inscricoes.php");
 
 class local_inscricoes_external extends external_api {
 
+// ----------------------------------------------------------------------------------
+
+    public static function get_categories_parameters() {
+        return new external_function_parameters(
+                    array('idpessoa' => new external_value(PARAM_LONG, 'Id Pessoa do SCCP')));
+    }
+
+    public static function get_categories($idpessoa) {
+        global $DB;
+
+        $params = self::validate_parameters(self::get_categories_parameters(), array('idpessoa'=>$idpessoa));
+
+        if(!$userid = $DB->get_field('user', 'id', array('idnumber'=>$idpessoa))) {
+            return array();
+        }
+
+        $sql = "SELECT DISTINCT cc.id, cc.name
+                  FROM {context} ctx
+                  JOIN {role_assignments} ra ON (ra.contextid = ctx.id)
+                  JOIN {course_categories} cc ON (cc.id = ctx.instanceid)
+                 WHERE ctx.contextlevel = 40
+                   AND ra.userid = {$userid}
+              ORDER BY cc.name";
+
+        $categories = array();
+        foreach($DB->get_recordset_sql($sql) AS $cat) {
+            $context = context_coursecat::instance($cat->id);
+            if(has_capability('local/inscricoes:manage', $context, $userid)){
+                $categories[] = $cat;
+            }
+        }
+
+        return $categories;
+    }
+
+    public static function get_categories_returns() {
+        return new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'id'       => new external_value(PARAM_INT, 'Category id'),
+                            'name'     => new external_value(PARAM_TEXT, 'Category name'),
+                        )
+                    )
+               );
+    }
+
+// ----------------------------------------------------------------------------------
+
+    public static function get_roles_parameters() {
+        return new external_function_parameters(array());
+    }
+
+    public static function get_roles() {
+        $roles = array();
+        foreach(local_inscricoes::get_roles() AS $role) {
+            $r = new stdClass();
+            $r->shortname = $role->shortname;
+            $r->name      = $role->name;
+            $roles[] = $r;
+        }
+
+        return $roles;
+    }
+
+    public static function get_roles_returns() {
+        return new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'shortname' => new external_value(PARAM_TEXT, 'Role shortname'),
+                            'name'      => new external_value(PARAM_TEXT, 'Role name'),
+                        )
+                    )
+               );
+    }
+
+// ----------------------------------------------------------------------------------
+
+    public static function add_activity_parameters() {
+        return new external_function_parameters(
+                    array('idpessoa' => new external_value(PARAM_LONG, 'Id Pessoa do SCCP'),
+                          'categoryid' => new external_value(PARAM_INT, 'Category id'),
+                          'activityid' => new external_value(PARAM_INT, 'Activity id'),
+                          'activityname' => new external_value(PARAM_TEXT, 'Activity name'),
+                          'roles' => new external_multiple_structure(new external_value(PARAM_TEXT, 'Role shortname'), '', VALUE_DEFAULT, array())
+                         )
+                   );
+    }
+
+    public static function add_activity($idpessoa, $categoryid, $activityid, $activityname, $role_shortnames=array()) {
+        global $DB;
+
+        $params = self::validate_parameters(self::add_activity_parameters(),
+                        array('idpessoa'=>$idpessoa, 'categoryid'=>$categoryid, 'activityid'=>$activityid, 'activityname'=>$activityname, 'roles'=>$role_shortnames));
+
+        if(!$userid = $DB->get_field('user', 'id', array('idnumber'=>$idpessoa))) {
+            return get_string('idpessoa_unknown', 'local_inscricoes');
+        }
+
+        if(!$DB->record_exists('course_categories', array('id'=>$categoryid))) {
+            return get_string('category_unknown', 'local_inscricoes');
+        }
+
+        $context = context_coursecat::instance($categoryid);
+        if(!has_capability('local/inscricoes:manage', $context, $userid)){
+            return get_string('no_permission', 'local_inscricoes');
+        }
+
+        if($activity = $DB->get_record('inscricoes_activities', array('externalactivityid'=>$activityid))) {
+            return get_string('activity_already_configured', 'local_inscricoes');
+        }
+
+        if(!empty($role_shortnames)) {
+            $roles = local_inscricoes::get_roles();
+            foreach($role_shortnames as $role_shortname) {
+                if(!isset($roles[$role_shortname])) {
+                    return get_string('role_invalid', 'local_inscricoes');
+                }
+            }
+        }
+
+        $activity = new stdclass();
+        $activity->contextid = $context->id;
+        $activity->externalactivityid = $activityid;
+        $activity->externalactivityname = $activityname;
+        $activity->enable = 1;
+        $activity->timecreated = time();
+        if(!$id = $DB->insert_record('inscricoes_activities', $activity)) {
+            return get_string('add_activity_fail', 'local_inscricoes');
+        }
+        $activity->id = $id;
+
+        if(!empty($role_shortnames)) {
+            foreach($role_shortnames as $role_shortname) {
+                local_inscricoes::get_cohort($activity, $roles[$role_shortname], true);
+            }
+        }
+
+        return get_string('ok', 'local_inscricoes');
+    }
+
+    public static function add_activity_returns() {
+        return new external_value(PARAM_TEXT, get_string('answer_text', 'local_inscricoes'));
+    }
+
+// ----------------------------------------------------------------------------------
+
     public static function subscribe_user_parameters() {
-        return new external_function_parameters (
+        return new external_function_parameters(
                     array('activityid' => new external_value(PARAM_INT, 'Activity Id'),
-                          'editionid' => new external_value(PARAM_INT, 'Edition id'),
                           'idpessoa' => new external_value(PARAM_LONG, 'Id Pessoa do SCCP'),
-                          'role' => new external_value(PARAM_TEXT, 'Subscription role'),
+                          'role' => new external_value(PARAM_TEXT, 'Subscription role shortname'),
                           'aditional_fields' => new external_value(PARAM_TEXT, 'Aditional fields (JSON - [name:key:value]*')));
     }
 
-    public static function subscribe_user($activityid, $editionid, $idpessoa, $role_shortname, $aditional_fields) {
-        global $CFG, $DB;
+    public static function subscribe_user($activityid, $idpessoa, $role_shortname, $aditional_fields) {
+        global $DB;
 
         $params = self::validate_parameters(self::subscribe_user_parameters(),
-                        array('activityid'=>$activityid, 'editionid'=>$editionid, 'idpessoa'=>$idpessoa,
-                              'role'=>$role_shortname, 'aditional_fields'=>$aditional_fields));
-
-        if(empty($role_shortname)) {
-            return get_string('empty_role_edition', 'local_inscricoes');
-        }
+                        array('activityid'=>$activityid, 'idpessoa'=>$idpessoa, 'role'=>$role_shortname, 'aditional_fields'=>$aditional_fields));
 
         if(!$activity = $DB->get_record('inscricoes_activities', array('externalactivityid'=>$activityid))) {
             return get_string('activity_not_configured', 'local_inscricoes');
@@ -34,32 +174,19 @@ class local_inscricoes_external extends external_api {
             return get_string('activity_not_enable', 'local_inscricoes');
         }
 
-        if(!$edition = $DB->get_record('inscricoes_editions', array('activityid'=>$activity->id, 'externaleditionid'=>$editionid))) {
-            return get_string('edition_unknown', 'local_inscricoes');
-        }
-
-        try {
-            $context = context::instance_by_id($activity->contextid);
-        } catch (Exception $e) {
+        if(!$context = context::instance_by_id($activity->contextid)) {
             return get_string('category_unknown', 'local_inscricoes');
         }
 
-        if(!$role = $DB->get_record('role', array('shortname'=>$role_shortname))) {
-            return get_string('role_unknown', 'local_inscricoes');
-        }
-        $invalid_roles = array('manager', 'guest', 'user');
-        if(in_array($role_shortname, $invalid_roles)) {
+        $roles = local_inscricoes::get_roles();
+        if(!isset($roles[$role_shortname])) {
             return get_string('role_invalid', 'local_inscricoes');
         }
 
         try {
-            $user = local_inscricoes_add_user($idpessoa);
-            if ($context->contextlevel == CONTEXT_COURSECAT) {
-                local_inscricoes_add_cohort_member($context->id, $user->id, $role, $edition);
-            } else {
-                return get_string('not_coursecat_context', 'local_inscricoes');
-            }
-            local_inscricoes_add_aditional_fields($activity->id, $user->id, $aditional_fields);
+            $user = local_inscricoes::add_user($idpessoa);
+            local_inscricoes::add_cohort_member($activity, $roles[$role_shortname], $user->id);
+            local_inscricoes::add_additional_fields($activity->id, $user->id, $aditional_fields);
         } catch (dml_write_exception $e) {
             return '40-' . $e->getMessage() . ' - ' . $e->debuginfo;
         } catch (Exception $e) {
@@ -74,23 +201,18 @@ class local_inscricoes_external extends external_api {
     }
 
     // ---------------------------------------------------------------------------------------------
+
     public static function unsubscribe_user_parameters() {
-        return new external_function_parameters (
+        return new external_function_parameters(
                     array('activityid' => new external_value(PARAM_INT, 'Activity Id'),
-                          'editionid' => new external_value(PARAM_INT, 'Edition id'),
-                          'idpessoa' => new external_value(PARAM_LONG, 'Id Pessoa do SCCP'),
-                          'role' => new external_value(PARAM_TEXT, 'Subscription role')));
+                          'idpessoa' => new external_value(PARAM_LONG, 'Id Pessoa do SCCP')));
     }
 
-    public static function unsubscribe_user($activityid, $editionid, $idpessoa, $role_shortname) {
-        global $CFG, $DB;
+    public static function unsubscribe_user($activityid, $idpessoa) {
+        global $DB;
 
         $params = self::validate_parameters(self::unsubscribe_user_parameters(),
-                        array('activityid'=>$activityid, 'editionid'=>$editionid, 'idpessoa'=>$idpessoa, 'role'=>$role_shortname));
-
-        if(empty($role_shortname)) {
-            return get_string('empty_role_edition', 'local_inscricoes');
-        }
+                        array('activityid'=>$activityid, 'idpessoa'=>$idpessoa));
 
         if(!$activity = $DB->get_record('inscricoes_activities', array('externalactivityid'=>$activityid))) {
             return get_string('activity_not_configured', 'local_inscricoes');
@@ -99,29 +221,16 @@ class local_inscricoes_external extends external_api {
             return get_string('activity_not_enable', 'local_inscricoes');
         }
 
-        if(!$edition = $DB->get_record('inscricoes_editions', array('activityid'=>$activity->id, 'externaleditionid'=>$editionid))) {
-            return get_string('edition_unknown', 'local_inscricoes');
-        }
-
-        try {
-            $context = context::instance_by_id($activity->contextid);
-        } catch (Exception $e) {
+        if(!$context = context::instance_by_id($activity->contextid)) {
             return get_string('category_unknown', 'local_inscricoes');
-        }
-
-        if(!$role = $DB->get_record('role', array('shortname'=>$role_shortname))) {
-            return get_string('role_unknown', 'local_inscricoes');
         }
 
         if(!$user = $DB->get_record('user', array('idnumber'=>$idpessoa))) {
             return get_string('idpessoa_unknown', 'local_inscricoes');
         }
+
         try {
-            if ($context->contextlevel == CONTEXT_COURSECAT) {
-                local_inscricoes_remove_cohort_member($activity->id, $context->id, $user->id, $role, $edition);
-            } else {
-                return get_string('not_coursecat_context', 'local_inscricoes');
-            }
+            local_inscricoes::remove_cohort_member($activity, $user->id);
         } catch (dml_write_exception $e) {
             return '40-' . $e->getMessage() . ' - ' . $e->debuginfo;
         } catch (Exception $e) {
@@ -137,91 +246,39 @@ class local_inscricoes_external extends external_api {
 
     // ---------------------------------------------------------------------------------------------
 
-    public static function add_edition_parameters() {
-        return new external_function_parameters (
-                    array('activityid' => new external_value(PARAM_INT, 'Activity id'),
-                          'editionid' => new external_value(PARAM_INT, 'Edition id'),
-                          'editionname' => new external_value(PARAM_TEXT, 'Edition name')));
+    public static function get_user_activities_parameters() {
+        return new external_function_parameters(
+                    array('idpessoa'   => new external_value(PARAM_LONG, 'Id Pessoa do SCCP')));
     }
 
-    public static function add_edition($activityid, $editionid, $editionname) {
-        global $CFG, $DB;
-
-        $params = self::validate_parameters(self::add_edition_parameters(),
-                        array('activityid'=>$activityid, 'editionid'=>$editionid, 'editionname'=>$editionname));
-
-        if(!$activity = $DB->get_record('inscricoes_activities', array('externalactivityid'=>$activityid))) {
-            return get_string('activity_not_configured', 'local_inscricoes');
-        }
-        if(!$activity->enable) {
-            return get_string('activity_not_enable', 'local_inscricoes');
-        }
-
-        if($edition = $DB->get_record('inscricoes_editions', array('activityid'=>$activity->id, 'externaleditionid'=>$editionid))) {
-            $edition->externaleditionname = $editionname;
-            if($DB->update_record('inscricoes_editions', $edition)) {
-                return get_string('ok', 'local_inscricoes');
-            } else {
-                return get_string('add_edition_fail', 'local_inscricoes');
-            }
-        } else {
-            $edition = new stdclass();
-            $edition->activityid = $activity->id;
-            $edition->externaleditionid = $editionid;
-            $edition->externaleditionname = $editionname;
-            $edition->timecreated = time();
-            if($DB->insert_record('inscricoes_editions', $edition)) {
-                return get_string('ok', 'local_inscricoes');
-            } else {
-                return get_string('add_edition_fail', 'local_inscricoes');
-            }
-        }
-    }
-
-    public static function add_edition_returns() {
-        return new external_value(PARAM_TEXT, get_string('answer_text', 'local_inscricoes'));
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
-    public static function get_user_status_parameters() {
-        return new external_function_parameters (
-                    array('idpessoa'   => new external_value(PARAM_LONG, 'Id Pessoa do SCCP'),
-                          'activityid' => new external_value(PARAM_INT, 'Activity id')));
-    }
-
-    public static function get_user_status($idpessoa, $activityid) {
+    public static function get_user_activities($idpessoa) {
         global $DB;
 
-        $params = self::validate_parameters(self::get_user_status_parameters(),
-                        array('idpessoa'=>$idpessoa, 'activityid'=>$activityid));
+        $params = self::validate_parameters(self::get_user_activities_parameters(), array('idpessoa'=>$idpessoa));
 
         if(!$user = $DB->get_record('user', array('idnumber'=>$idpessoa))) {
-            return array('userid'=>0, 'editions'=>array());
+            return array();
         }
 
-        if(!$activity = $DB->get_record('inscricoes_activities', array('externalactivityid'=>$activityid))) {
-            return array('userid'=>$user->id, 'editions'=>array());
+        $activities = array();
+        foreach(local_inscricoes::get_user_activities($user->id) AS $rec) {
+            $act = new stdClass();
+            $act->activityid = $rec->id;
+            $act->categoryid = $rec->categoryid;
+            $act->role       = $rec->role_shortname;
+            $activities[] = $act;
         }
-
-        $sql = "SELECT DISTINCT ie.externaleditionid
-                 FROM {inscricoes_activities} ia
-                 JOIN {inscricoes_editions} ie ON (ie.activityid = ia.id)
-                 JOIN {cohort} ch ON (ch.contextid = ia.contextid AND ch.idnumber LIKE CONCAT ('si_%_edicao:', ie.externaleditionid))
-                 JOIN {cohort_members} cm ON (cm.cohortid = ch.id)
-                WHERE ia.id = :activityid
-                  AND cm.userid = :userid";
-        $editionids = $DB->get_records_sql($sql, array('activityid'=>$activity->id, 'userid'=>$user->id));
-        return array('userid'=>$user->id, 'editions'=>array_keys($editionids));
+        return $activities;
     }
 
-    public static function get_user_status_returns() {
-        return new external_single_structure(
-                    array(
-                        'userid'   => new external_value(PARAM_INT, 'User id'),
-                        'editions' => new external_multiple_structure(new external_value(PARAM_INT, 'Edition Id'), 'Array of Edition ids'),
-                    )
+    public static function get_user_activities_returns() {
+        return new external_multiple_structure(
+                    new external_single_structure(
+                        array('activityid' => new external_value(PARAM_INT, 'User id'),
+                              'categoryid' => new external_value(PARAM_INT, 'Category id'),
+                              'role'       => new external_value(PARAM_TEXT, 'Role shortname'),
+                            )
+                        )
                );
     }
-
 }

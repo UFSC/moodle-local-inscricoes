@@ -9,6 +9,7 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="externalactivityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="externalactivityname" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="enable" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
       </FIELDS>
@@ -19,6 +20,20 @@
         <INDEX NAME="inscfg_ctx_ix" UNIQUE="false" FIELDS="contextid"/>
         <INDEX NAME="inscfg_act_ix" UNIQUE="false" FIELDS="externalactivityid"/>
         <INDEX NAME="inscfg_ena_ix" UNIQUE="false" FIELDS="enable"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="inscricoes_cohorts" COMMENT="inscricoes_cohorts">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="activityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="cohortid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="roleid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="insch_ctx_ix" UNIQUE="true" FIELDS="activityid,cohortid"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="inscricoes_key_fields" COMMENT="inscricoes_key_fields">
@@ -49,21 +64,6 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="insuser_uk_ix" UNIQUE="true" FIELDS="userid, keyid"/>
-      </INDEXES>
-    </TABLE>
-    <TABLE NAME="inscricoes_editions" COMMENT="inscricoes_editions table">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="activityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="externaleditionid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="externaleditionname" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-      </KEYS>
-      <INDEXES>
-        <INDEX NAME="inscedit_extext_uix" UNIQUE="true" FIELDS="activityid, externaleditionid"/>
       </INDEXES>
     </TABLE>
   </TABLES>
