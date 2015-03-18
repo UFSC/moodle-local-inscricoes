@@ -14,12 +14,19 @@ class local_inscricoes_external extends external_api {
                     array('idpessoa' => new external_value(PARAM_LONG, 'Id Pessoa do SCCP')));
     }
 
+    /**
+     * Retorna uma lista de categorias nas quais a pessoa (identificada pelo idpessoa) tem permissão para associar
+     * atividades do Sistema de Inscrições.
+     *
+     * @param  int $idpessoa
+     * @return array the category details
+     */
     public static function get_categories($idpessoa) {
         global $DB;
 
         $params = self::validate_parameters(self::get_categories_parameters(), array('idpessoa'=>$idpessoa));
 
-        if(!$userid = $DB->get_field('user', 'id', array('idnumber'=>$idpessoa))) {
+        if (!$userid = $DB->get_field('user', 'id', array('idnumber'=>$idpessoa))) {
             return array();
         }
 
@@ -32,9 +39,9 @@ class local_inscricoes_external extends external_api {
               ORDER BY cc.name";
 
         $categories = array();
-        foreach($DB->get_recordset_sql($sql) AS $cat) {
+        foreach ($DB->get_recordset_sql($sql) AS $cat) {
             $context = context_coursecat::instance($cat->id);
-            if(has_capability('local/inscricoes:manage', $context, $userid)){
+            if (has_capability('local/inscricoes:manage', $context, $userid)){
                 $categories[] = $cat;
             }
         }
@@ -59,9 +66,14 @@ class local_inscricoes_external extends external_api {
         return new external_function_parameters(array());
     }
 
+    /**
+     * Retorna uma lista de papeis que podem ser utilizados pelo Sistema de Inscrições para inscrever pessoas no Moodle.
+     *
+     * @return array lista de papeis
+     */
     public static function get_roles() {
         $roles = array();
-        foreach(local_inscricoes::get_roles() AS $role) {
+        foreach (local_inscricoes::get_roles() AS $role) {
             $r = new stdClass();
             $r->shortname = $role->shortname;
             $r->name      = $role->name;
@@ -95,33 +107,44 @@ class local_inscricoes_external extends external_api {
                    );
     }
 
+    /**
+     * Relaciona uma atividade do Sistema de Inscrições com uma categoria do Moodle e, opcionalmente, cria os cohorts de usuários por papel
+     *
+     * @param  int $idpessoa da pessoa com permissão para associar atividades do Sistema de Inscrições com classes do Moodle
+     * @param  int $categoryid id da categoria à qual será associada uma atividade do Sistema de Inscrições
+     * @param  int $activityid id da atividade do Sistema de Inscrições que será associada à categoria
+     * @param  int $activityname nome da atividade do Sistema de Inscrições que será associada à categoria
+     * @param  array $role_shortnames lista (opcional) de papeis com os quais as pessoas serão inscritas
+     *                                (utilizado para criação inicial dos cohorts por papel)
+     * @return String mensagem de ok ou de erro
+     */
     public static function add_activity($idpessoa, $categoryid, $activityid, $activityname, $role_shortnames=array()) {
         global $DB;
 
         $params = self::validate_parameters(self::add_activity_parameters(),
                         array('idpessoa'=>$idpessoa, 'categoryid'=>$categoryid, 'activityid'=>$activityid, 'activityname'=>$activityname, 'roles'=>$role_shortnames));
 
-        if(!$userid = $DB->get_field('user', 'id', array('idnumber'=>$idpessoa))) {
+        if (!$userid = $DB->get_field('user', 'id', array('idnumber'=>$idpessoa))) {
             return get_string('idpessoa_unknown', 'local_inscricoes');
         }
 
-        if(!$DB->record_exists('course_categories', array('id'=>$categoryid))) {
+        if (!$DB->record_exists('course_categories', array('id'=>$categoryid))) {
             return get_string('category_unknown', 'local_inscricoes');
         }
 
         $context = context_coursecat::instance($categoryid);
-        if(!has_capability('local/inscricoes:manage', $context, $userid)){
+        if (!has_capability('local/inscricoes:manage', $context, $userid)){
             return get_string('no_permission', 'local_inscricoes');
         }
 
-        if($activity = $DB->get_record('inscricoes_activities', array('externalactivityid'=>$activityid))) {
+        if ($activity = $DB->get_record('inscricoes_activities', array('externalactivityid'=>$activityid))) {
             return get_string('activity_already_configured', 'local_inscricoes');
         }
 
-        if(!empty($role_shortnames)) {
+        if (!empty($role_shortnames)) {
             $roles = local_inscricoes::get_roles();
-            foreach($role_shortnames as $role_shortname) {
-                if(!isset($roles[$role_shortname])) {
+            foreach ($role_shortnames as $role_shortname) {
+                if (!isset($roles[$role_shortname])) {
                     return get_string('role_invalid', 'local_inscricoes');
                 }
             }
@@ -133,13 +156,13 @@ class local_inscricoes_external extends external_api {
         $activity->externalactivityname = $activityname;
         $activity->enable = 1;
         $activity->timecreated = time();
-        if(!$id = $DB->insert_record('inscricoes_activities', $activity)) {
+        if (!$id = $DB->insert_record('inscricoes_activities', $activity)) {
             return get_string('add_activity_fail', 'local_inscricoes');
         }
         $activity->id = $id;
 
-        if(!empty($role_shortnames)) {
-            foreach($role_shortnames as $role_shortname) {
+        if (!empty($role_shortnames)) {
+            foreach ($role_shortnames as $role_shortname) {
                 local_inscricoes::get_cohort($activity, $roles[$role_shortname], true);
             }
         }
@@ -161,25 +184,34 @@ class local_inscricoes_external extends external_api {
                           'aditional_fields' => new external_value(PARAM_TEXT, 'Aditional fields (JSON - [name:key:value]*')));
     }
 
+    /**
+     * Inscreve um usuário no cohort correspondente ao papel da categoria correspondente à atividade do Sistema de Inscrições
+     *
+     * @param  int $activityid id da atividade do Sistema de Inscrições
+     * @param  int $idpessoa da pessoa a ser inscrita
+     * @param  String $role_shortname nome curto do papel com o qual a pessoa será inscrita
+     * @param  Array $aditional_fields campos opcionais adicionais (chave - valor) relativo à inscrição da pessoa
+     * @return String ensagem de ok ou de erro
+     */
     public static function subscribe_user($activityid, $idpessoa, $role_shortname, $aditional_fields) {
         global $DB;
 
         $params = self::validate_parameters(self::subscribe_user_parameters(),
                         array('activityid'=>$activityid, 'idpessoa'=>$idpessoa, 'role'=>$role_shortname, 'aditional_fields'=>$aditional_fields));
 
-        if(!$activity = $DB->get_record('inscricoes_activities', array('externalactivityid'=>$activityid))) {
+        if (!$activity = $DB->get_record('inscricoes_activities', array('externalactivityid'=>$activityid))) {
             return get_string('activity_not_configured', 'local_inscricoes');
         }
-        if(!$activity->enable) {
+        if (!$activity->enable) {
             return get_string('activity_not_enable', 'local_inscricoes');
         }
 
-        if(!$context = context::instance_by_id($activity->contextid)) {
+        if (!$context = context::instance_by_id($activity->contextid)) {
             return get_string('category_unknown', 'local_inscricoes');
         }
 
         $roles = local_inscricoes::get_roles();
-        if(!isset($roles[$role_shortname])) {
+        if (!isset($roles[$role_shortname])) {
             return get_string('role_invalid', 'local_inscricoes');
         }
 
@@ -208,24 +240,31 @@ class local_inscricoes_external extends external_api {
                           'idpessoa' => new external_value(PARAM_LONG, 'Id Pessoa do SCCP')));
     }
 
+    /**
+     * Desinscreve um usuário de todos os cohorts (papeis) da categoria correspondente à atividade do Sistema de Inscrições
+     *
+     * @param  int $activityid id da atividade do Sistema de Inscrições
+     * @param  int $idpessoa da pessoa a ser desinscrita
+     * @return String ensagem de ok ou de erro
+     */
     public static function unsubscribe_user($activityid, $idpessoa) {
         global $DB;
 
         $params = self::validate_parameters(self::unsubscribe_user_parameters(),
                         array('activityid'=>$activityid, 'idpessoa'=>$idpessoa));
 
-        if(!$activity = $DB->get_record('inscricoes_activities', array('externalactivityid'=>$activityid))) {
+        if (!$activity = $DB->get_record('inscricoes_activities', array('externalactivityid'=>$activityid))) {
             return get_string('activity_not_configured', 'local_inscricoes');
         }
-        if(!$activity->enable) {
+        if (!$activity->enable) {
             return get_string('activity_not_enable', 'local_inscricoes');
         }
 
-        if(!$context = context::instance_by_id($activity->contextid)) {
+        if (!$context = context::instance_by_id($activity->contextid)) {
             return get_string('category_unknown', 'local_inscricoes');
         }
 
-        if(!$user = $DB->get_record('user', array('idnumber'=>$idpessoa))) {
+        if (!$user = $DB->get_record('user', array('idnumber'=>$idpessoa))) {
             return get_string('idpessoa_unknown', 'local_inscricoes');
         }
 
@@ -251,17 +290,23 @@ class local_inscricoes_external extends external_api {
                     array('idpessoa'   => new external_value(PARAM_LONG, 'Id Pessoa do SCCP')));
     }
 
+    /**
+     * Retorna uma lista com todas as atividades onde ela está inscrita
+     *
+     * @param  int $idpessoa da pessoa a ser desinscrita
+     * @return array detalhes das atividades
+     */
     public static function get_user_activities($idpessoa) {
         global $DB;
 
         $params = self::validate_parameters(self::get_user_activities_parameters(), array('idpessoa'=>$idpessoa));
 
-        if(!$user = $DB->get_record('user', array('idnumber'=>$idpessoa))) {
+        if (!$user = $DB->get_record('user', array('idnumber'=>$idpessoa))) {
             return array();
         }
 
         $activities = array();
-        foreach(local_inscricoes::get_user_activities($user->id) AS $rec) {
+        foreach (local_inscricoes::get_user_activities($user->id) AS $rec) {
             $act = new stdClass();
             $act->activityid = $rec->id;
             $act->categoryid = $rec->categoryid;

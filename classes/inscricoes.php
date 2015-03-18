@@ -29,34 +29,34 @@ require_once($CFG->dirroot . '/user/lib.php');
 class local_inscricoes {
 
     public static function get_activities($categoryid, $only_enable=false, $including_subcategories=false) {
-	global $DB;
+        global $DB;
 
-	$catids = self::get_related_categoryids($categoryid, $including_subcategories);
-	$str_cats = implode(',', $catids);
+        $catids = self::get_related_categoryids($categoryid, $including_subcategories);
+        $str_cats = implode(',', $catids);
 
-	$sql = "SELECT ia.*
-		  FROM {inscricoes_activities} ia
-		  JOIN {context} ctx ON (ctx.id = ia.contextid)
-		 WHERE ctx.instanceid IN ($str_cats)
-		   AND ctx.contextlevel = :contextlevel";
-	if($only_enable) {
-		$sql .= " AND ia.enable = 1";
-	}
-	return $DB->get_records_sql($sql, array('contextlevel'=>CONTEXT_COURSECAT));
+        $sql = "SELECT ia.*
+            FROM {inscricoes_activities} ia
+            JOIN {context} ctx ON (ctx.id = ia.contextid)
+            WHERE ctx.instanceid IN ($str_cats)
+            AND ctx.contextlevel = :contextlevel";
+        if($only_enable) {
+            $sql .= " AND ia.enable = 1";
+        }
+        return $DB->get_records_sql($sql, array('contextlevel'=>CONTEXT_COURSECAT));
     }
 
     public static function get_related_categoryids($categoryid, $including_children=false) {
-	    global $DB;
+        global $DB;
 
-	    $path = $DB->get_field('course_categories', 'path', array('id'=>$categoryid));
-	    $catids = explode('/', $path);
-	    unset($catids[0]);
+        $path = $DB->get_field('course_categories', 'path', array('id'=>$categoryid));
+        $catids = explode('/', $path);
+        unset($catids[0]);
 
-	    if($including_children) {
-		$sql = "SELECT id FROM {course_categories} WHERE path LIKE '%/{$categoryid}/%'";
-		$catids = array_merge($catids, array_keys($DB->get_records_sql($sql)));
-	    }
-	    return $catids;
+        if($including_children) {
+            $sql = "SELECT id FROM {course_categories} WHERE path LIKE '%/{$categoryid}/%'";
+            $catids = array_merge($catids, array_keys($DB->get_records_sql($sql)));
+        }
+        return $catids;
     }
 
     /**

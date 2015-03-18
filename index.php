@@ -25,7 +25,7 @@ $PAGE->set_heading($COURSE->fullname);
 echo $OUTPUT->header();
 
 $activities = $DB->get_records('inscricoes_activities', array('contextid'=>$context->id));
-if(empty($activities)) {
+if (empty($activities)) {
     echo $OUTPUT->heading(get_string('no_activities', 'local_inscricoes'));
     echo $OUTPUT->single_button($returnurl, get_string('back'));
     echo $OUTPUT->footer();
@@ -33,11 +33,11 @@ if(empty($activities)) {
 }
 
 $activityid = optional_param('activityid', 0, PARAM_INT);
-if(count($activities) == 1) {
+if (count($activities) == 1) {
     $activity = reset($activities);
     $activityid = $activity->id;
 } else {
-    if(isset($activities[$activityid])) {
+    if (isset($activities[$activityid])) {
         $activity = $activities[$activityid];
     } else {
         $activityid = 0;
@@ -46,7 +46,7 @@ if(count($activities) == 1) {
 }
 
 $activities_menu = array();
-foreach($activities AS $act) {
+foreach ($activities AS $act) {
     $activities_menu[$act->id] = $act->externalactivityname;
 }
 
@@ -57,7 +57,7 @@ $select->label = get_string('activity', 'local_inscricoes');
 $select->formid = 'chooseactivity';
 echo html_writer::tag('div', $OUTPUT->render($select), array('id'=>'activity_selector'));
 
-if($activity) {
+if ($activity) {
     $additional_fields = local_inscricoes::get_additional_fields($activity->id);
 
     $users = local_inscricoes::get_users($activity->id);
@@ -65,12 +65,12 @@ if($activity) {
 
     $data = array();
     $count = 0;
-    foreach($users AS $u) {
+    foreach ($users AS $u) {
         $count++;
         $line = array($count, $u->rolename, fullname($u));
-        if($additional_fields) {
-            foreach($additional_fields AS $field) {
-                if(isset($values[$u->userid][$field])) {
+        if ($additional_fields) {
+            foreach ($additional_fields AS $field) {
+                if (isset($values[$u->userid][$field])) {
                     $v =  $values[$u->userid][$field];
                     $line[] = "{$v[1]} ({$v[0]})";
                 } else {
@@ -86,7 +86,7 @@ if($activity) {
     $table->align = array('center', 'left', 'left');
     $table->colclasses = array('centeralign', 'leftalign', 'leftalign');
 
-    foreach($additional_fields AS $field) {
+    foreach ($additional_fields AS $field) {
         $table->head[] = $field;
         $table->align[] = 'left';
         $table->colclasses[] = 'leftalign';
