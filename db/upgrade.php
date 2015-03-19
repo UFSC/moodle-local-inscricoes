@@ -1,56 +1,59 @@
 <?php
 
-/**
- * Handles upgrading instances of this block.
- *
- * @param int $oldversion
- * @param object $block
- */
 function xmldb_local_inscricoes_upgrade($oldversion) {
-    global $DB;
+    global $CFG, $DB, $OUTPUT;
 
     $dbman = $DB->get_manager(); // Loads ddl manager and xmldb classes.
 
-    if ($oldversion < 2014040101) {
-        // Define field display to be added to folder
-        $table = new xmldb_table('inscricoes_reports');
-        $field = new xmldb_field('tutornotesassign', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'optionalatonetime');
+    if ($oldversion < 2015012900) {
 
-        // Conditionally launch add field display
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
+        // --------------------------------------------------------------------------------------------
+        $table = new xmldb_table('inscricoes_cohorts');
+        if (!$dbman->table_exists($table)) {
+            $dbman->install_one_table_from_xmldb_file(dirname(__FILE__). '/install.xml', 'inscricoes_cohorts');
+
+            $sql = "INSERT INTO inscricoes_cohorts (activityid, cohortid, roleid)
+                    SELECT ia.id, ch.id, r.id
+                      FROM {cohort} ch
+                      JOIN {inscricoes_activities} ia ON (ia.contextid = ch.contextid)
+                      JOIN {inscricoes_editions} ie ON (ia.id = ie.activityid AND ie.externaleditionid = SUBSTRING_INDEX(ch.idnumber, ':', -1))
+                      JOIN {role} r ON (r.shortname = SUBSTRING_INDEX(SUBSTRING_INDEX(ch.idnumber, '_', -2), '_', 1) )
+                     WHERE ch.component = 'local_inscricoes'
+                       AND ch.idnumber LIKE '%_edicao:%'";
+            $DB->execute($sql);
         }
 
-        // folder savepoint reached
-        upgrade_plugin_savepoint(true, 2014040101, 'local', 'inscricoes');
-    }
-
-    if ($oldversion < 2014040304) {
-        // Define field display to be added to folder
-        $table = new xmldb_table('inscricoes_editions');
-        $field = new xmldb_field('externalactivityid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'id');
-
-        // Conditionally launch add field display
-        if ($dbman->field_exists($table, $field)) {
-            $dbman->rename_field($table, $field, 'activityid');
-        }
-
-        // folder savepoint reached
-        upgrade_plugin_savepoint(true, 2014040304, 'local', 'inscricoes');
-    }
-
-    if ($oldversion < 2014060101) {
-        // Define field display to droped
         $table = new xmldb_table('inscricoes_activities');
-        $field = new xmldb_field('createcohortbyedition');
+        if ($dbman->table_exists($table)) {
+            $field = new xmldb_field('externalactivityname', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null, 'externalactivityid');
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
 
-        // Conditionally launch add field display
-        if ($dbman->field_exists($table, $field)) {
-            $dbman->drop_field($table, $field);
+            $table = new xmldb_table('inscricoes_editions');
+            if ($dbman->table_exists($table)) {
+                $sql = "UPDATE {inscricoes_editions} ie
+                          JOIN {inscricoes_activities} ia ON (ia.id = ie.activityid)
+                           SET ia.externalactivityname = CONCAT('Atividade ', ia.externalactivityid, ' (', ie.externaleditionname, ')')";
+                $DB->execute($sql);
+            }
+
+            $sql = "UPDATE cohort ch
+                      JOIN {inscricoes_activities} ia ON (ia.contextid = ch.contextid)
+                      JOIN {role} r ON (r.shortname = SUBSTRING_INDEX(ch.idnumber, '_', -1))
+                       SET ch.component = ''
+                     WHERE ch.component = 'local_inscricoes'
+                       AND ch.idnumber NOT LIKE '%_edicao:%'";
+            $DB->execute($sql);
         }
 
-        // folder savepoint reached
-        upgrade_plugin_savepoint(true, 2014060101, 'local', 'inscricoes');
+        // --------------------------------------------------------------------------------------------
+        $table = new xmldb_table('inscricoes_editions');
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+
+        upgrade_plugin_savepoint(true, 2015012900, 'local', 'inscricoes');
     }
 
     return true;
