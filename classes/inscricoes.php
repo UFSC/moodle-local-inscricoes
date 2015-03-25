@@ -25,6 +25,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/cohort/lib.php');
 require_once($CFG->dirroot . '/user/lib.php');
+require_once($CFG->dirroot . '/local/wsufsc/classes/wsufsc.php');
 
 class local_inscricoes {
 
@@ -85,7 +86,8 @@ class local_inscricoes {
         global $DB, $CFG;
 
         if(!$user = $DB->get_record('user', array('idnumber'=>$idpessoa))) {
-            if(!$pessoa = wsufsc::getPessoaById($idpessoa)) {
+            $wsufsc = new wsufsc();
+            if(!$pessoa = $wsufsc->getPessoaById($idpessoa)) {
                 throw new Exception(get_string('idpessoa_unknown', 'local_inscricoes'));
             }
             if(empty($pessoa->email)) {
