@@ -291,9 +291,9 @@ class local_inscricoes_external extends external_api {
     }
 
     /**
-     * Retorna uma lista com todas as atividades onde ela está inscrita
+     * Retorna uma lista com todas as atividades onde uma pessoa está inscrita
      *
-     * @param  int $idpessoa da pessoa a ser desinscrita
+     * @param  int $idpessoa da pessoa
      * @return array detalhes das atividades
      */
     public static function get_user_activities($idpessoa) {
@@ -309,8 +309,11 @@ class local_inscricoes_external extends external_api {
         foreach (local_inscricoes::get_user_activities($user->id) AS $rec) {
             $act = new stdClass();
             $act->activityid = $rec->id;
+            $act->externalactivityid = $rec->externalactivityid;
+            $act->externalactivityname = $rec->externalactivityname;
             $act->categoryid = $rec->categoryid;
-            $act->role       = $rec->role_shortname;
+            $act->categoryname = $rec->name;
+            $act->role = $rec->role_shortname;
             $activities[] = $act;
         }
         return $activities;
@@ -320,7 +323,10 @@ class local_inscricoes_external extends external_api {
         return new external_multiple_structure(
                     new external_single_structure(
                         array('activityid' => new external_value(PARAM_INT, 'User id'),
+                              'externalactivityid' => new external_value(PARAM_INT, 'Id da atividade no Sistema de Inscrições'),
+                              'externalactivityname' => new external_value(PARAM_TEXT, 'Nome da atividade no Sistema de Inscrições'),
                               'categoryid' => new external_value(PARAM_INT, 'Category id'),
+                              'categoryname' => new external_value(PARAM_TEXT, 'Nome da categoria no Moodle'),
                               'role'       => new external_value(PARAM_TEXT, 'Role shortname'),
                             )
                         )
