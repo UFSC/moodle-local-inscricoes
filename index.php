@@ -63,11 +63,13 @@ if ($activity) {
     $users = local_inscricoes::get_users($activity->id);
     $values = local_inscricoes::get_additional_field_values($activity->id);
 
+    $allroles = role_get_names($context);
+
     $data = array();
     $count = 0;
     foreach ($users AS $u) {
         $count++;
-        $line = array($count, $u->rolename, fullname($u));
+        $line = array($count, $allroles[$u->roleid]->localname, fullname($u));
         if ($additional_fields) {
             foreach ($additional_fields AS $field) {
                 if (isset($values[$u->userid][$field])) {

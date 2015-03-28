@@ -320,7 +320,7 @@ class local_inscricoes {
         }
 
         $user_fields = implode(',', get_all_user_name_fields());
-        $sql = "SELECT cm.userid, u.username, {$user_fields}, ic.roleid, r.name as rolename
+        $sql = "SELECT cm.userid, u.username, {$user_fields}, ic.roleid
                   FROM {inscricoes_activities} ia
                   JOIN {inscricoes_cohorts} ic ON (ic.activityid = ia.id)
                   JOIN {role} r ON (r.id = ic.roleid)
