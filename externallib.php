@@ -72,15 +72,7 @@ class local_inscricoes_external extends external_api {
      * @return array lista de papeis
      */
     public static function get_roles() {
-        $roles = array();
-        foreach (local_inscricoes::get_roles() AS $role) {
-            $r = new stdClass();
-            $r->shortname = $role->shortname;
-            $r->name      = $role->name;
-            $roles[] = $r;
-        }
-
-        return $roles;
+        return local_inscricoes::get_roles();
     }
 
     public static function get_roles_returns() {

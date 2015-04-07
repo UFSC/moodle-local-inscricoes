@@ -4,6 +4,9 @@ $string['pluginname'] = 'Sistema de Inscrições';
 $string['pluginname_desc'] = 'Define as rotinas de recepção de dados do Sistema de Inscrições';
 $string['curriculumcontrol'] = 'Controle Curricular';
 
+$string['roles'] = 'Papéis';
+$string['roles_desc'] = 'Papéis que pode ser atribuídos a pessoas via Sistema de Inscrições';
+
 $string['title'] = 'Dados oriundos do Sistema de Inscrições';
 $string['no_activities'] = 'Não foi localizada atividade do Sistema de Inscrições associada a esta categoria';
 $string['activity'] = 'Atividade do Sistema de Inscrições';
@@ -31,4 +34,3 @@ $string['connection_fail'] = '22-Connection to SCCP has failed';
 $string['add_user_fail'] = '23-An error occured when adding user';
 $string['has_empty_field'] = '26-Empty value for some aditional field';
 $string['has_duplicated_field'] = '27-duplicated value for some aditional field';
-

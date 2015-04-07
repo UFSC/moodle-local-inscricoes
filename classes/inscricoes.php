@@ -66,14 +66,24 @@ class local_inscricoes {
      * @return array
      */
     public static function get_roles() {
-        global $DB;
+        $cfg_roles = get_config('local_inscricoes', 'roles');
+        if(empty($cfg_roles)) {
+            return array();
+        }
 
-        $sql = "SELECT r.shortname, r.id, r.name
-                  FROM {role_context_levels} rc
-                  JOIN {role} r ON (r.id = rc.roleid AND r.shortname NOT IN ('manager', 'guest', 'user'))
-                 WHERE rc.contextlevel = :contextlevel
-              ORDER BY r.name";
-        return $DB->get_records_sql($sql, array('contextlevel' => CONTEXT_COURSE));
+        $cfg_roles = explode(',', $cfg_roles);
+        $allroles = role_get_names(context_system::instance());
+
+        $roles = array();
+        foreach ($cfg_roles AS $roleid) {
+            $r = new stdClass();
+            $r->id        = $roleid;
+            $r->shortname = $allroles[$roleid]->shortname;
+            $r->name      = $allroles[$roleid]->localname;
+            $roles[$r->shortname] = $r;
+        }
+
+        return $roles;
     }
 
     /**
