@@ -25,7 +25,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/cohort/lib.php');
 require_once($CFG->dirroot . '/user/lib.php');
-require_once($CFG->dirroot . '/local/wsufsc/classes/wsufsc.php');
+require_once($CFG->dirroot . '/local/wsufsc/lib.php');
 
 class local_inscricoes {
 
