@@ -1,0 +1,12 @@
+{
+    "name": "moodle-ufsc/local_inscricoes",
+    "description": "Interação com o sistema de inscrições",
+    "license": "GPLv3",
+    "type": "moodle-local",
+    "require": {
+      "composer/installers": "~1.0"
+    },
+    "extra": {
+      "installer-name": "inscricoes"
+    }
+}
