@@ -2,7 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-function local_inscricoes_extends_settings_navigation(navigation_node $navigation) {
+function local_inscricoes_extend_settings_navigation(navigation_node $navigation) {
     global $PAGE;
 
     if (is_a($PAGE->context, 'context_coursecat') && has_capability('local/inscricoes:view', $PAGE->context)) {
